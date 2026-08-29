@@ -19,7 +19,6 @@ namespace Domain.Entities
         public decimal MinimumIncrement { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-        public AuctionStatus Status { get; set; }
         public byte[] Version { get; set; } = Array.Empty<byte>();
         public Category Category { get; set; } = null!;
         public ICollection<Bid> Bids { get; set; } = new List<Bid>();
