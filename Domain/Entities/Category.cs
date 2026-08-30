@@ -10,7 +10,7 @@ namespace Domain.Entities
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public string Icon { get; set; } = string.Empty;
-        public ICollection<Auction> Auction { get; set; } = new List<Auction>();
+        public string IconUrl { get; set; } = string.Empty;
+        public ICollection<Auction> Auctions { get; set; } = new List<Auction>();
     }
 }

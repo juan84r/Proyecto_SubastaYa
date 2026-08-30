@@ -2,13 +2,9 @@
   <Folder Name="/Elementos de la solución/">
     <File Path="README.md" />
   </Folder>
-  <Folder Name="/Frontend/">
-    <File Path="app.js" />
-    <File Path="index.html" />
-    <File Path="styles.css" />
-  </Folder>
   <Project Path="Application/Application.csproj" />
   <Project Path="Domain/Domain.csproj" />
+  <Project Path="Frontend/Frontend.csproj" Id="9b26ef28-716a-411d-aa9f-ef73470a18ae" />
   <Project Path="Infrastructure/Infrastructure.csproj" />
   <Project Path="SubastaYa/SubastaYa.csproj" />
 </Solution>
