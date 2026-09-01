@@ -1,8 +1,12 @@
-﻿namespace Domain.Exceptions;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Exceptions;
 
 public class SelfBiddingException : DomainException
 {
-	public SelfBiddingException(string message) : base(message)
-	{
-	}
+	public SelfBiddingException(string message) : base(message) { }
 }

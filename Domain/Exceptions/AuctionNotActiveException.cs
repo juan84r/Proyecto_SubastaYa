@@ -1,8 +1,12 @@
-﻿namespace Domain.Exceptions;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-public class AuctionNotActiveException : DomainException
+namespace Domain.Exceptions;
+
+	public class AuctionNotActiveException : DomainException
 {
-	public AuctionNotActiveException(string message) : base(message)
-	{
-	}
+	public AuctionNotActiveException(string message) : base(message) { }
 }

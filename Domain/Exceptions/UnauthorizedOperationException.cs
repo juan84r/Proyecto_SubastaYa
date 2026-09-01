@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Domain.Exceptions;
 
-public class ConcurrencyConflictException : DomainException
+public class UnauthorizedOperationException : DomainException
 {
-    public ConcurrencyConflictException(string message) : base(message){ }
+    public UnauthorizedOperationException(string message) : base(message) { }
 }
+// comentario

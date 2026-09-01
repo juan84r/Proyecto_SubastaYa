@@ -4,17 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Exceptions
+namespace Domain.Exceptions;
+
+public abstract class DomainException : Exception
 {
-<<<<<<< HEAD
-	public abstract class DomainException : Exception
-	{
-		protected DomainException(string message) : base(message) { }
-	}
-=======
-    public abstract class DomainException : Exception
-    {
-        protected DomainException(string message) : base(message) { }
-    }
->>>>>>> juan
+	public DomainException(string message) : base(message) { }
 }
