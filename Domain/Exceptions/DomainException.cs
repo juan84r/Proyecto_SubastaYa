@@ -11,10 +11,5 @@ namespace Domain.Exceptions
     {
         protected DomainException(string message) : base(message) { }
     }
-
-	public abstract class DomainException : Exception
-	{
-		protected DomainException(string message) : base(message) { }
-	}
-
 }
+//algo
