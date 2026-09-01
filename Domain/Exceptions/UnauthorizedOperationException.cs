@@ -10,4 +10,3 @@ public class UnauthorizedOperationException : DomainException
 {
     public UnauthorizedOperationException(string message) : base(message) { }
 }
-// comentario
