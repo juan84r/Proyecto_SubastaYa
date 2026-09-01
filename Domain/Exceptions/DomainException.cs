@@ -12,4 +12,3 @@ namespace Domain.Exceptions
         protected DomainException(string message) : base(message) { }
     }
 }
-//algo
