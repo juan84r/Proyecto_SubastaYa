@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Domain.Entities
 {
-	internal class LedgerTransaction
+	public class LedgerTransaction
 	{
 		public int Id { get; set; }
 		public int WalletId { get; set; }
