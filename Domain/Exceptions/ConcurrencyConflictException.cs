@@ -8,5 +8,5 @@ namespace Domain.Exceptions;
 
 public class ConcurrencyConflictException : DomainException
 {
-    public ConcurrencyConflictException(string message) : base(message){ }
+    public ConcurrencyConflictException(string message) : base(message) { }
 }

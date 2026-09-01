@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 namespace Domain.Exceptions;
 
 public class InvalidAuctionDateException : DomainException
-    {
-        public InvalidAuctionDateException(string message) : base(message) { }
-    }
-
+{
+    public InvalidAuctionDateException(string message) : base(message) { }
+}

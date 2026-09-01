@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Domain.Exceptions;
 
-	public class AuctionNotActiveException : DomainException
+public class AuctionNotActiveException : DomainException
 {
-	public AuctionNotActiveException(string message) : base(message) { }
+    public AuctionNotActiveException(string message) : base(message) { }
 }

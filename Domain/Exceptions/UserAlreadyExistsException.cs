@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Exceptions
+namespace Domain.Exceptions;
+
+public class UserAlreadyExistsException : DomainException
 {
-    public class UserAlreadyExistsException : DomainException
-    {
-        public UserAlreadyExistsException(string message) : base(message) { }
-    }
+    public UserAlreadyExistsException(string message) : base(message) { }
 }
