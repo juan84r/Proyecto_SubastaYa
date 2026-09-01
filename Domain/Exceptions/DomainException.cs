@@ -6,8 +6,15 @@ using System.Threading.Tasks;
 
 namespace Domain.Exceptions
 {
+<<<<<<< HEAD
 	public abstract class DomainException : Exception
 	{
 		protected DomainException(string message) : base(message) { }
 	}
+=======
+    public abstract class DomainException : Exception
+    {
+        protected DomainException(string message) : base(message) { }
+    }
+>>>>>>> juan
 }
