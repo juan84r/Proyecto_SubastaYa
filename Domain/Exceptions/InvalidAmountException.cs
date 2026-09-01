@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Exceptions;
-
-public class InvalidAmountException : DomainException
+namespace Domain.Exceptions
 {
-	public InvalidAmountException(string message) : base(message) { }
+    public class InvalidAmountException : DomainException
+    {
+        public InvalidAmountException(string message) : base(message) { }
+    }
 }

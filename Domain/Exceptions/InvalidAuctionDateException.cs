@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Exceptions;
-
-public class InvalidAuctionDateException : DomainException
+namespace Domain.Exceptions
 {
-    public InvalidAuctionDateException(string message) : base(message) { }
+    public class InvalidAuctionDateException : DomainException
+    {
+        public InvalidAuctionDateException(string message) : base(message) { }
+    }
 }

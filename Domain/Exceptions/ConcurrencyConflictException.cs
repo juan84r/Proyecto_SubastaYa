@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Exceptions;
-
-public class ConcurrencyConflictException : DomainException
+namespace Domain.Exceptions
 {
-    public ConcurrencyConflictException(string message) : base(message) { }
+    public class ConcurrencyConflictException : DomainException
+    {
+        public ConcurrencyConflictException(string message) : base(message) { }
+    }
 }

@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Exceptions;
-
-public class AuctionNotActiveException : DomainException
+namespace Domain.Exceptions
 {
-    public AuctionNotActiveException(string message) : base(message) { }
+    public class AuctionNotActiveException : DomainException
+    {
+        public AuctionNotActiveException(string message) : base(message) { }
+    }
 }

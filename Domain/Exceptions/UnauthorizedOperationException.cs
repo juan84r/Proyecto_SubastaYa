@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Exceptions;
-
-public class UnauthorizedOperationException : DomainException
+namespace Domain.Exceptions
 {
-    public UnauthorizedOperationException(string message) : base(message) { }
+    public class UnauthorizedOperationException : DomainException
+    {
+        public UnauthorizedOperationException(string message) : base(message) { }
+    }
 }

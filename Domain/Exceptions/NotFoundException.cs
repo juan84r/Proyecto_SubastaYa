@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Exceptions;
-
-public class NotFoundException : DomainException
+namespace Domain.Exceptions
 {
-	public NotFoundException(string message) : base(message) { }
+    public class NotFoundException : DomainException
+    {
+        public NotFoundException(string message) : base(message) { }
+    }
 }

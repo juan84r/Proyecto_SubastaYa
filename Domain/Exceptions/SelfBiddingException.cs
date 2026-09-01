@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Exceptions;
-
-public class SelfBiddingException : DomainException
+namespace Domain.Exceptions
 {
-	public SelfBiddingException(string message) : base(message) { }
+    public class SelfBiddingException : DomainException
+    {
+        public SelfBiddingException(string message) : base(message) { }
+    }
 }
