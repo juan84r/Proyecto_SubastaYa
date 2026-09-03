@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs.Wallets
 {
-	internal class DepositFundsRequestDto
+	public class DepositFundsRequestDto
 	{
+		public decimal Amount { get; set; }
 	}
 }
