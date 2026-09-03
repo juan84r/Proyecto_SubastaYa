@@ -6,7 +6,12 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs.Wallets
 {
-	internal class WalletResponseDto
+	public class WalletResponseDto
 	{
+		public int Id { get; set; }
+		public int UserId { get; set; }
+		public decimal TotalBalance { get; set; }
+		public decimal LockedBalance { get; set; }
+		public decimal AvailableBalance { get; set; }
 	}
 }
