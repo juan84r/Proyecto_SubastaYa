@@ -1,12 +1,14 @@
 using Application.Interfaces;
+using Application.UseCases.Users.Handlers;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
+using Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using SubastaYaCopia.Middlewares;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Cadena de conexión y DbContext para PostgreSQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -14,6 +16,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         b.MigrationsAssembly("Infrastructure")));
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+builder.Services.AddScoped<RegisterUserHandler>();
+builder.Services.AddScoped<LoginHandler>();
+
+builder.Services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
+builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
@@ -27,7 +35,6 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
-
 
 if (app.Environment.IsDevelopment())
 {
