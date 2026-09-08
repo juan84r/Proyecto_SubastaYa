@@ -18,7 +18,7 @@ namespace Infrastructure.Persistence
 		public DbSet<Bid> Bids => Set<Bid>();
 		public DbSet<Wallet> Wallets => Set<Wallet>();
 		public DbSet<LedgerTransaction> LedgerTransactions => Set<LedgerTransaction>();
-		public DbSet<AudithLog> AuditLogs => Set<AudithLog>();
+		public DbSet<AudithLog> AudithLogs => Set<AudithLog>();
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
