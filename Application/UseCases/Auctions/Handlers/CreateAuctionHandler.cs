@@ -55,12 +55,17 @@ namespace Application.UseCases.Auctions.Handlers
 				throw new InvalidAmountException("El incremento mínimo debe ser mayor a cero.");
 			}
 
-			if (dto.EndDate <= dto.StartDate)
+			if (dto.StartDate < DateTime.Now.AddMinutes(-1))
 			{
-				throw new InvalidAuctionDateException("La fecha de finalización debe ser posterior a la fecha de inicio.");
+				throw new InvalidAuctionDateException("La fecha de inicio de la subasta no puede ser anterior a la fecha actual.");
 			}
 
-			var auction = new Auction
+            if (dto.EndDate <= dto.StartDate)
+            {
+                throw new InvalidAuctionDateException("La fecha de finalización debe ser posterior a la fecha de inicio.");
+            }
+
+            var auction = new Auction
 			{
 				Title = dto.Title,
 				Description = dto.Description,

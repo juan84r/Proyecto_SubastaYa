@@ -38,6 +38,10 @@ namespace Application.UseCases.Users.Handlers
             var dto = command.Dto;
 
             var emailExists = await _userRepository.ExistsByEmailAsync(dto.Email, cancellationToken);
+            if (await _userRepository.ExistsByNameAsync(dto.Name, cancellationToken))
+            {
+                throw new UserAlreadyExistsException($"El nombre de usuario '{dto.Name}' ya se encuentra en uso.");
+            }
             if (emailExists)
             {
                 throw new UserAlreadyExistsException($"El correo electrónico '{dto.Email}' ya se encuentra registrado en el sistema.");

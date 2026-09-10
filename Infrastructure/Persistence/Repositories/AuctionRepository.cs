@@ -40,7 +40,7 @@ namespace Infrastructure.Persistence.Repositories
             return await _context.Auctions
                 .AsNoTracking()
                 .Include(a => a.Category)
-                .Where(a => a.Status == "ACTIVA")
+                .Where(a => a.Status == "ACTIVE")
                 .OrderByDescending(a => a.StartDate)
                 .ToListAsync(cancellationToken);
         }

@@ -33,13 +33,13 @@ namespace Application.UseCases.Users.Handlers
             var user = await _userRepository.GetByEmailAsync(dto.Email, cancellationToken);
             if (user == null)
             {
-                throw new InvalidCredentialsException("Las credenciales proporcionadas son incorrectas.");
+                throw new InvalidCredentialsException("El nombre de usuario proporcionado es incorrecto.");
             }
 
             var isPasswordValid = _passwordHasher.VerifyPassword(dto.Password, user.PasswordHash);
             if (!isPasswordValid)
             {
-                throw new InvalidCredentialsException("Las credenciales proporcionadas son incorrectas.");
+                throw new InvalidCredentialsException("La contraseña proporcionada es incorrecta.");
             }
 
             var token = _jwtProvider.GenerateToken(user);

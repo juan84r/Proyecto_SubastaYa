@@ -11,7 +11,8 @@ namespace Application.Interfaces
 	{
 		Task<User?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
 		Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
-		Task<bool> ExistsByEmailAsync(string email, CancellationToken cancellationToken = default);
+        Task<bool> ExistsByNameAsync(string name, CancellationToken cancellationToken = default);
+        Task<bool> ExistsByEmailAsync(string email, CancellationToken cancellationToken = default);
 		Task AddAsync(User user, CancellationToken cancellationToken = default);
 	}
 }

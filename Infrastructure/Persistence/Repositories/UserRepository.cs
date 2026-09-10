@@ -24,8 +24,13 @@ namespace Infrastructure.Persistence.Repositories
 				.Include(u => u.Wallet)
 				.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
 		}
+        public async Task<bool> ExistsByNameAsync(string name, CancellationToken cancellationToken = default)
+        {
+            return await _context.Users
+                .AnyAsync(u => u.Name.ToLower() == name.ToLower(), cancellationToken);
+        }
 
-		public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
+        public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
 		{
 			return await _context.Users
 				.FirstOrDefaultAsync(u => u.Email == email, cancellationToken);

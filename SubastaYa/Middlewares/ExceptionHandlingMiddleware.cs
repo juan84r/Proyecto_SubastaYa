@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Domain.Exceptions;
+using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Text.Json;
 
@@ -36,8 +37,18 @@ namespace SubastaYaCopia.Middlewares
             {
                 KeyNotFoundException => HttpStatusCode.NotFound,            
                 ArgumentException => HttpStatusCode.BadRequest,             
-                InvalidOperationException => HttpStatusCode.Conflict,       
-                UnauthorizedAccessException => HttpStatusCode.Unauthorized, 
+                InvalidOperationException => HttpStatusCode.Conflict,
+                UserAlreadyExistsException => HttpStatusCode.Conflict,
+                InvalidCredentialsException => HttpStatusCode.Unauthorized,
+                InvalidAmountException => HttpStatusCode.Unauthorized,
+                NotFoundException => HttpStatusCode.NotFound,
+                InvalidAuctionDateException => HttpStatusCode.Unauthorized,
+                UnauthorizedAccessException => HttpStatusCode.Unauthorized,
+                ConcurrencyConflictException => HttpStatusCode.Unauthorized,
+
+                AuctionNotActiveException => HttpStatusCode.Unauthorized,
+                InsufficientFundsException => HttpStatusCode.Unauthorized,
+                SelfBiddingException => HttpStatusCode.Unauthorized,
                 _ => HttpStatusCode.InternalServerError                     
             };
 
