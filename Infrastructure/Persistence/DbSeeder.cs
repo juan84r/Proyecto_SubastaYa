@@ -91,6 +91,7 @@ namespace Infrastructure.Persistence
             var standardAuction = new Auction
             {
                 SellerId = seller.Id,
+                CategoryId = 2,
                 Title = "PlayStation 5 with 2 Controllers",
                 Description = "Console in mint condition with original retail packaging.",
                 ImageUrl = "https://images.unsplash.com/photo-1606813907291-d86efa9b94db",
@@ -105,6 +106,7 @@ namespace Infrastructure.Persistence
             var criticalAuction = new Auction
             {
                 SellerId = seller.Id,
+                CategoryId = 2,
                 Title = "iPhone 15 Pro Max 256GB",
                 Description = "Closing soon, test anti-sniping dynamic time extension.",
                 ImageUrl = "https://images.unsplash.com/photo-1695048133142-1a20484d2569",
@@ -119,6 +121,7 @@ namespace Infrastructure.Persistence
             var upcomingAuction = new Auction
             {
                 SellerId = seller.Id,
+                CategoryId = 4,
                 Title = "Signed Lionel Messi Argentina Jersey",
                 Description = "Includes official Certificate of Authenticity (COA).",
                 ImageUrl = "https://images.unsplash.com/photo-1522778119026-d647f0596c20",
@@ -133,6 +136,7 @@ namespace Infrastructure.Persistence
             var expiredAuctionWithWinner = new Auction
             {
                 SellerId = seller.Id,
+                CategoryId = 2,
                 Title = "MacBook Pro M2 16GB RAM",
                 Description = "Past end time with winning bid, ready for background settlement.",
                 ImageUrl = "https://images.unsplash.com/photo-1517336714731-489689fd1ca8",
@@ -147,6 +151,7 @@ namespace Infrastructure.Persistence
             var expiredAuctionDeserted = new Auction
             {
                 SellerId = seller.Id,
+                CategoryId = 3,
                 Title = "Vintage Wooden Wall Clock",
                 Description = "Past end time without any bids.",
                 ImageUrl = "https://images.unsplash.com/photo-1563861826100-9cb868fdbe1c",

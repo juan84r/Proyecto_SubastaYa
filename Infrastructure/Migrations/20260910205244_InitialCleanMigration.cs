@@ -4,10 +4,12 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialCleanMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -178,6 +180,22 @@ namespace Infrastructure.Migrations
                         principalTable: "Wallets",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Categories",
+                columns: new[] { "Id", "IconUrl", "Name" },
+                values: new object[,]
+                {
+                    { 1, "https://cdn-icons-png.flaticon.com/512/743/743912.png", "Vehículos" },
+                    { 2, "https://cdn-icons-png.flaticon.com/512/689/689396.png", "Tecnología" },
+                    { 3, "https://cdn-icons-png.flaticon.com/512/2933/2933758.png", "Hogar y Muebles" },
+                    { 4, "https://cdn-icons-png.flaticon.com/512/1048/1048953.png", "Arte y Antigüedades" },
+                    { 5, "https://cdn-icons-png.flaticon.com/512/2611/2611152.png", "Joyas y Relojes" },
+                    { 6, "https://cdn-icons-png.flaticon.com/512/3050/3050239.png", "Moda y Accesorios" },
+                    { 7, "https://cdn-icons-png.flaticon.com/512/857/857455.png", "Deportes y Fitness" },
+                    { 8, "https://cdn-icons-png.flaticon.com/512/609/609803.png", "Inmuebles" },
+                    { 9, "https://cdn-icons-png.flaticon.com/512/570/570223.png", "Otros" }
                 });
 
             migrationBuilder.CreateIndex(

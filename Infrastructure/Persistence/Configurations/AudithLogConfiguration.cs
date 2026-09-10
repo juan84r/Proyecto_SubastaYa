@@ -13,7 +13,7 @@ namespace Infrastructure.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<AudithLog> builder)
         {
-            builder.ToTable("AuditLogs");
+            builder.ToTable("AudithLogs");
 
             builder.HasKey(a => a.Id);
 

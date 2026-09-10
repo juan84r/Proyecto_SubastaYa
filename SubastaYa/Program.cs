@@ -15,11 +15,13 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 1. Conexión a Base de Datos
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString, b =>
         b.MigrationsAssembly("Infrastructure")));
 
+// 2. Configuración de JWT
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "ClaveSecretaSuperSeguraDeSubastaYa12345!";
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "SubastaYa";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "SubastaYaApp";
@@ -43,6 +45,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// 3. Inyección de Dependencias (Servicios, Handlers y Repositorios)
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<RegisterUserHandler>();
 builder.Services.AddScoped<LoginHandler>();
@@ -54,7 +57,6 @@ builder.Services.AddScoped<GetWalletBalanceHandler>();
 builder.Services.AddScoped<DepositFundsHandler>();
 builder.Services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
-
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
 builder.Services.AddScoped<IBidRepository, BidRepository>();
@@ -63,6 +65,8 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
+// 4. Swagger con soporte Bearer
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "SubastaYa API", Version = "v1" });
@@ -94,6 +98,7 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+// 5. Middlewares de Pipeline HTTP
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -103,10 +108,25 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
+
+// 6. Ejecución del Seeder al inicio
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        var passwordHasher = services.GetRequiredService<IPasswordHasher>();
+        await DbSeeder.SeedAsync(context, passwordHasher);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Ocurrió un error al poblar la base de datos.");
+    }
+}
 
 app.Run();

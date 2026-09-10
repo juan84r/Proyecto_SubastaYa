@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260908003614_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260910212612_RenameAuditLogToAudithLogs")]
+    partial class RenameAuditLogToAudithLogs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -126,7 +126,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("Entity", "EntityId");
 
-                    b.ToTable("AuditLogs", (string)null);
+                    b.ToTable("AudithLogs", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Bid", b =>
@@ -182,6 +182,62 @@ namespace Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Categories", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            IconUrl = "https://cdn-icons-png.flaticon.com/512/743/743912.png",
+                            Name = "Vehículos"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            IconUrl = "https://cdn-icons-png.flaticon.com/512/689/689396.png",
+                            Name = "Tecnología"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            IconUrl = "https://cdn-icons-png.flaticon.com/512/2933/2933758.png",
+                            Name = "Hogar y Muebles"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            IconUrl = "https://cdn-icons-png.flaticon.com/512/1048/1048953.png",
+                            Name = "Arte y Antigüedades"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            IconUrl = "https://cdn-icons-png.flaticon.com/512/2611/2611152.png",
+                            Name = "Joyas y Relojes"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            IconUrl = "https://cdn-icons-png.flaticon.com/512/3050/3050239.png",
+                            Name = "Moda y Accesorios"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            IconUrl = "https://cdn-icons-png.flaticon.com/512/857/857455.png",
+                            Name = "Deportes y Fitness"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            IconUrl = "https://cdn-icons-png.flaticon.com/512/609/609803.png",
+                            Name = "Inmuebles"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            IconUrl = "https://cdn-icons-png.flaticon.com/512/570/570223.png",
+                            Name = "Otros"
+                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.LedgerTransaction", b =>
