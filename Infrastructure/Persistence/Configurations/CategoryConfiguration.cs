@@ -1,11 +1,6 @@
 ﻿using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Persistence.Configurations
 {
@@ -31,6 +26,13 @@ namespace Infrastructure.Persistence.Configurations
                 .WithOne(a => a.Category)
                 .HasForeignKey(a => a.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasData(
+                new Category { Id = 1, Name = "Vehículos", IconUrl = "https://cdn-icons-png.flaticon.com/512/743/743912.png" },
+                new Category { Id = 2, Name = "Tecnología", IconUrl = "https://cdn-icons-png.flaticon.com/512/689/689396.png" },
+                new Category { Id = 3, Name = "Hogar y Muebles", IconUrl = "https://cdn-icons-png.flaticon.com/512/2933/2933758.png" },
+                new Category { Id = 4, Name = "Arte y Coleccionables", IconUrl = "https://cdn-icons-png.flaticon.com/512/1048/1048953.png" }
+            );
         }
     }
 }

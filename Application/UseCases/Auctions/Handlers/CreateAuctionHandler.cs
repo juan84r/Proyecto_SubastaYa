@@ -64,6 +64,7 @@ namespace Application.UseCases.Auctions.Handlers
 			{
 				Title = dto.Title,
 				Description = dto.Description,
+				ImageUrl = dto.ImageUrl,
 				StartingPrice = dto.StartingPrice,
 				MinimumIncrement = dto.MinimumIncrement,
 				StartDate = dto.StartDate,
