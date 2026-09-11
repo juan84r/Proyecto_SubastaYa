@@ -21,6 +21,16 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString, b =>
         b.MigrationsAssembly("Infrastructure")));
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("https://localhost:7077", "http://localhost:5254")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "ClaveSecretaSuperSeguraDeSubastaYa12345!";
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "SubastaYa";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "SubastaYaApp";
@@ -53,8 +63,10 @@ builder.Services.AddScoped<GetAuctionByIdHandler>();
 builder.Services.AddScoped<PlaceBidHandler>();
 builder.Services.AddScoped<GetWalletBalanceHandler>();
 builder.Services.AddScoped<DepositFundsHandler>();
+
 builder.Services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
+
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
 builder.Services.AddScoped<IBidRepository, BidRepository>();
@@ -63,7 +75,6 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-
 builder.Services.AddHostedService<AuctionStatusWorker>();
 
 builder.Services.AddSwaggerGen(c =>
@@ -106,8 +117,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowFrontend");
+
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
 using (var scope = app.Services.CreateScope())

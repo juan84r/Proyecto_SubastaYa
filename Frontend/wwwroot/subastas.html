@@ -1,0 +1,107 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SubastaYa - Panel Principal</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div>
+                <h1 style="font-size: 1.5rem;">SubastaYa</h1>
+                <small id="user-display" style="color: #9ca3af; font-weight: 500;"></small>
+            </div>
+            <div class="user-controls">
+                <span id="wallet-display" class="badge" style="background-color: #047857; font-size: 1rem;">Saldo: $0.00</span>
+                <button id="btn-logout" class="btn btn-logout-orange" style="padding: 0.4rem 0.8rem;">Salir</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+            <button id="btn-toggle-recharge" class="btn btn-primary">+ Cargar Saldo</button>
+            <button id="btn-toggle-auction" class="btn btn-outline">+ Publicar Subasta</button>
+        </div>
+
+        <section id="box-recharge" class="card hidden">
+            <h3>Cargar Saldo a la Billetera</h3>
+            <form id="form-recharge" style="margin-top: 1rem;">
+                <div class="form-group">
+                    <label for="recharge-amount">Monto a depositar ($)</label>
+                    <input type="number" id="recharge-amount" step="0.01" min="1" required placeholder="Ej: 5000">
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button type="submit" class="btn btn-primary">Acreditar Fondos</button>
+                    <button type="button" id="btn-cancel-recharge" class="btn btn-secondary">Cancelar</button>
+                </div>
+            </form>
+            <p id="recharge-msg"></p>
+        </section>
+
+        <section id="box-auction" class="card hidden">
+            <h3>Publicar Nueva Subasta</h3>
+            <form id="form-create-auction" style="margin-top: 1rem;">
+                <div class="form-group">
+                    <label for="auc-title">Título del Producto</label>
+                    <input type="text" id="auc-title" required placeholder="Ej: Notebook Gamer 16GB">
+                </div>
+
+                <div class="form-group">
+                    <label for="auc-desc">Descripción</label>
+                    <input type="text" id="auc-desc" required placeholder="Detalles, estado, especificaciones">
+                </div>
+
+                <div class="form-group">
+                    <label for="auc-image">URL de la Imagen (opcional)</label>
+                    <input type="url" id="auc-image" placeholder="https://ejemplo.com/foto.jpg">
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+                    <div class="form-group">
+                        <label for="auc-price">Precio Base ($)</label>
+                        <input type="number" id="auc-price" step="0.01" min="0" required placeholder="1000">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="auc-increment">Incremento Mínimo ($)</label>
+                        <input type="number" id="auc-increment" step="0.01" min="1" required placeholder="100">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="auc-category">ID de Categoría</label>
+                        <input type="number" id="auc-category" min="1" value="1" required>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div class="form-group">
+                        <label for="auc-start">Fecha y Hora de Inicio</label>
+                        <input type="datetime-local" id="auc-start" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="auc-end">Fecha y Hora de Fin</label>
+                        <input type="datetime-local" id="auc-end" required>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                    <button type="submit" class="btn btn-primary">Crear Subasta</button>
+                    <button type="button" id="btn-cancel-auction" class="btn btn-secondary">Cancelar</button>
+                </div>
+            </form>
+            <p id="auction-msg"></p>
+        </section>
+
+        <h2>Subastas Disponibles</h2>
+        <div id="grid-subastas" class="grid" style="margin-top: 1rem;">
+            <p>Cargando subastas...</p>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

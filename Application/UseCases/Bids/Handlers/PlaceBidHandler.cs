@@ -1,5 +1,4 @@
-﻿
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Application.UseCases.Bids.Commands;
 using Domain.Entities;
 using Domain.Exceptions;

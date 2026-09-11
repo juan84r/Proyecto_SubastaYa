@@ -35,13 +35,13 @@ namespace Application.UseCases.Auctions.Handlers
 
 				return new AuctionListResponseDto
 				{
-					Id = auction.Id,                                       // Id
-					Title = auction.Title,                                 // Titulo
-					CurrentPrice = currentPrice,                           // Precio Actual
-					EndDate = auction.EndDate,                             // Fecha de finalizacion
-					Status = auction.Status,                               // Estado
-					CategoryName = auction.Category?.Name ?? string.Empty, // Nombre de la categoria
-					TotalBids = auction.Bids.Count                         // Total de ofertas (pujas)
+					Id = auction.Id,                                     
+					Title = auction.Title,                               
+					CurrentPrice = currentPrice,                           
+					EndDate = auction.EndDate,                             
+					Status = auction.Status,                               
+					CategoryName = auction.Category?.Name ?? string.Empty, 
+					TotalBids = auction.Bids.Count                         
 				};
 			}).ToList();
 
