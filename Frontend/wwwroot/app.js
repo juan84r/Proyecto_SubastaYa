@@ -3,7 +3,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     if (document.getElementById("form-login")) {
         initAuthPage();
-    } else if (document.getElementById("grid-subastas")) {
+    } else if (document.getElementById("grid-categorias")) {
         initAuctionsPage();
     }
 });
@@ -41,12 +41,18 @@ function initAuthPage() {
                 body: JSON.stringify({ email, password })
             });
 
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.message || "Usuario o contraseña inválidos");
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.message || data.title || "Usuario o contraseña inválidos");
 
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("userName", data.name);
-            localStorage.setItem("userId", data.id);
+            const token = data.token || data.Token;
+            const userName = data.name || data.Name || email;
+            const userId = data.id || data.Id || 0;
+
+            if (!token) throw new Error("No se recibió el token de autenticación.");
+
+            localStorage.setItem("token", token);
+            localStorage.setItem("userName", userName);
+            localStorage.setItem("userId", userId);
             window.location.href = "subastas.html";
         } catch (ex) {
             errBox.textContent = ex.message;
@@ -71,8 +77,8 @@ function initAuthPage() {
                 body: JSON.stringify({ name, email, password })
             });
 
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.message || "Error al registrarse");
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.message || data.title || "Error al registrarse");
 
             okBox.textContent = "¡Usuario registrado! Ya podés ingresar.";
             setTimeout(() => {
@@ -85,7 +91,22 @@ function initAuthPage() {
     };
 }
 
+const CATEGORIAS_LISTA = [
+    { id: "", nombre: "Todas", imagen: "https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&auto=format&fit=crop&q=60" },
+    { id: 1, nombre: "Vehículos", imagen: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&auto=format&fit=crop&q=60" },
+    { id: 2, nombre: "Tecnología", imagen: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&auto=format&fit=crop&q=60" },
+    { id: 3, nombre: "Hogar y Muebles", imagen: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&auto=format&fit=crop&q=60" },
+    { id: 4, nombre: "Arte y Antigüedades", imagen: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=400&auto=format&fit=crop&q=60" },
+    { id: 5, nombre: "Joyas y Relojes", imagen: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&auto=format&fit=crop&q=60" },
+    { id: 6, nombre: "Moda y Accesorios", imagen: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&auto=format&fit=crop&q=60" },
+    { id: 7, nombre: "Deportes y Fitness", imagen: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=400&auto=format&fit=crop&q=60" },
+    { id: 8, nombre: "Inmuebles", imagen: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&auto=format&fit=crop&q=60" },
+    { id: 9, nombre: "Otros", imagen: "https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=400&auto=format&fit=crop&q=60" }
+];
+
 let subastasCache = [];
+let categoriaSeleccionada = null;
+let busquedaIdActiva = null;
 
 function initAuctionsPage() {
     const token = localStorage.getItem("token");
@@ -108,21 +129,20 @@ function initAuctionsPage() {
     const boxRecharge = document.getElementById("box-recharge");
     const boxAuction = document.getElementById("box-auction");
 
-    document.getElementById("btn-toggle-recharge").onclick = () => {
-        boxRecharge.classList.toggle("hidden");
-    };
-
-    document.getElementById("btn-cancel-recharge").onclick = () => {
-        boxRecharge.classList.add("hidden");
-    };
+    document.getElementById("btn-toggle-recharge").onclick = () => boxRecharge.classList.toggle("hidden");
+    document.getElementById("btn-cancel-recharge").onclick = () => boxRecharge.classList.add("hidden");
 
     document.getElementById("btn-toggle-auction").onclick = () => {
         precargarFechas();
         boxAuction.classList.toggle("hidden");
     };
+    document.getElementById("btn-cancel-auction").onclick = () => boxAuction.classList.add("hidden");
 
-    document.getElementById("btn-cancel-auction").onclick = () => {
-        boxAuction.classList.add("hidden");
+    document.getElementById("btn-volver-categorias").onclick = () => {
+        categoriaSeleccionada = null;
+        busquedaIdActiva = null;
+        document.getElementById("vista-subastas").classList.add("hidden");
+        document.getElementById("vista-categorias").classList.remove("hidden");
     };
 
     document.getElementById("form-recharge").onsubmit = async (e) => {
@@ -164,6 +184,8 @@ function initAuctionsPage() {
         msg.textContent = "Publicando...";
         msg.className = "";
 
+        const catId = parseInt(document.getElementById("auc-category").value) || 1;
+
         const bodyData = {
             title: document.getElementById("auc-title").value.trim(),
             description: document.getElementById("auc-desc").value.trim(),
@@ -172,7 +194,7 @@ function initAuctionsPage() {
             minimumIncrement: parseFloat(document.getElementById("auc-increment").value),
             startDate: new Date(document.getElementById("auc-start").value).toISOString(),
             endDate: new Date(document.getElementById("auc-end").value).toISOString(),
-            categoryId: parseInt(document.getElementById("auc-category").value)
+            categoryId: catId
         };
 
         try {
@@ -192,7 +214,7 @@ function initAuctionsPage() {
             msg.textContent = "¡Subasta creada!";
             document.getElementById("form-create-auction").reset();
 
-            cargarSubastas(false);
+            abrirCategoria(catId.toString());
             setTimeout(() => boxAuction.classList.add("hidden"), 1000);
         } catch (err) {
             msg.className = "error-msg";
@@ -200,15 +222,75 @@ function initAuctionsPage() {
         }
     };
 
+    const formSearch = document.getElementById("form-search-id");
+    const inputSearch = document.getElementById("search-id-input");
+
+    formSearch.onsubmit = (e) => {
+        e.preventDefault();
+        const idVal = parseInt(inputSearch.value);
+        if (!idVal || isNaN(idVal)) return;
+
+        busquedaIdActiva = idVal;
+        categoriaSeleccionada = "busqueda";
+
+        document.getElementById("vista-categorias").classList.add("hidden");
+        document.getElementById("vista-subastas").classList.remove("hidden");
+        document.getElementById("titulo-categoria-activa").textContent = `Búsqueda por ID #${idVal}`;
+        document.getElementById("subtitulo-filtro").textContent = "";
+
+        cargarSubastas(false);
+    };
+
+    renderizarVitrinaCategorias();
     cargarBilletera();
-    cargarSubastas(false);
 
     setInterval(actualizarCronometrosLocales, 1000);
 
     setInterval(() => {
         cargarBilletera();
-        cargarSubastas(true);
+        if (categoriaSeleccionada !== null) {
+            cargarSubastas(true);
+        }
     }, 3000);
+}
+
+function renderizarVitrinaCategorias() {
+    const contenedor = document.getElementById("grid-categorias");
+    if (!contenedor) return;
+
+    contenedor.innerHTML = "";
+
+    CATEGORIAS_LISTA.forEach(cat => {
+        const card = document.createElement("div");
+        card.className = "category-card";
+
+        card.innerHTML = `
+            <img src="${cat.imagen}" alt="${cat.nombre}" loading="lazy">
+            <div class="category-card-overlay">
+                <span class="category-card-title">${cat.nombre}</span>
+            </div>
+        `;
+
+        card.onclick = () => abrirCategoria(cat.id.toString(), cat.nombre);
+        contenedor.appendChild(card);
+    });
+}
+
+function abrirCategoria(catId, nombreCat) {
+    categoriaSeleccionada = catId;
+    busquedaIdActiva = null;
+
+    if (!nombreCat) {
+        const encontrada = CATEGORIAS_LISTA.find(c => c.id.toString() === catId);
+        nombreCat = encontrada ? encontrada.nombre : "Subastas";
+    }
+
+    document.getElementById("vista-categorias").classList.add("hidden");
+    document.getElementById("vista-subastas").classList.remove("hidden");
+    document.getElementById("titulo-categoria-activa").textContent = `Categoría: ${nombreCat}`;
+    document.getElementById("subtitulo-filtro").textContent = catId === "" ? "Viendo todo el catálogo" : `ID Categoría: ${catId}`;
+
+    cargarSubastas(false);
 }
 
 async function cargarBilletera() {
@@ -223,7 +305,7 @@ async function cargarBilletera() {
 
         if (res.ok) {
             const w = await res.json();
-            display.textContent = `Saldo: $${Number(w.availableBalance).toFixed(2)}`;
+            display.textContent = `Saldo: $${Number(w.availableBalance ?? w.AvailableBalance).toFixed(2)}`;
         }
     } catch (err) {
         console.error("Error al obtener balance", err);
@@ -237,13 +319,34 @@ async function cargarSubastas(esSilencioso = false) {
     if (!grid || !token) return;
 
     try {
-        const res = await fetch(`${API_BASE}/Auctions`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
+        let lista = [];
 
-        if (!res.ok) throw new Error("No se pudieron cargar las subastas");
+        if (busquedaIdActiva !== null) {
+            const resDetalle = await fetch(`${API_BASE}/Auctions/${busquedaIdActiva}`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
 
-        const lista = await res.json();
+            if (!resDetalle.ok) {
+                grid.innerHTML = `<p class="error-msg">No se encontró ninguna subasta con el ID #${busquedaIdActiva}.</p>`;
+                return;
+            }
+
+            const detalle = await resDetalle.json();
+            lista = [detalle];
+        } else {
+            let url = `${API_BASE}/Auctions`;
+            if (categoriaSeleccionada !== "") {
+                url += `?categoryId=${categoriaSeleccionada}`;
+            }
+
+            const res = await fetch(url, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+
+            if (!res.ok) throw new Error("No se pudieron cargar las subastas");
+            lista = await res.json();
+        }
+
         subastasCache = lista;
 
         const detalles = await Promise.all(
@@ -260,22 +363,20 @@ async function cargarSubastas(esSilencioso = false) {
                 const det = detalles[index];
                 if (!det) return;
 
-                const currentPrice = Number(det.currentPrice);
+                const currentPrice = Number(det.currentPrice ?? a.currentPrice);
                 const minimumIncrement = Number(det.minimumIncrement ?? 1);
                 const hasBids = (a.totalBids > 0);
 
                 const nextBidRequired = hasBids
                     ? (currentPrice + minimumIncrement)
-                    : Number(det.startingPrice);
+                    : Number(det.startingPrice ?? a.currentPrice);
 
                 const elPrice = document.getElementById(`price-${a.id}`);
                 const elMin = document.getElementById(`min-${a.id}`);
-                const elBids = document.getElementById(`bids-${a.id}`);
                 const inputBid = document.getElementById(`monto-${a.id}`);
 
                 if (elPrice) elPrice.textContent = `$${currentPrice.toFixed(2)}`;
                 if (elMin) elMin.textContent = `$${minimumIncrement.toFixed(2)}`;
-                if (elBids) elBids.textContent = a.totalBids;
 
                 if (inputBid && document.activeElement !== inputBid) {
                     inputBid.placeholder = `Mínimo a ingresar: $${nextBidRequired.toFixed(2)}`;
@@ -288,7 +389,7 @@ async function cargarSubastas(esSilencioso = false) {
         grid.innerHTML = "";
 
         if (lista.length === 0) {
-            grid.innerHTML = "<p>No hay subastas activas actualmente.</p>";
+            grid.innerHTML = "<p>No hay subastas activas en esta categoría actualmente.</p>";
             return;
         }
 
@@ -299,6 +400,8 @@ async function cargarSubastas(esSilencioso = false) {
             const minimumIncrement = Number(det.minimumIncrement ?? 1);
             const hasBids = (a.totalBids > 0);
 
+            const fotoUrl = det.imageUrl || det.ImageUrl || a.imageUrl || a.ImageUrl || "";
+
             const nextBidRequired = hasBids
                 ? (currentPrice + minimumIncrement).toFixed(2)
                 : startingPrice.toFixed(2);
@@ -308,44 +411,55 @@ async function cargarSubastas(esSilencioso = false) {
 
             const card = document.createElement("div");
             card.className = "card auction-card";
+            card.style.padding = "0";
+            card.style.overflow = "hidden";
 
             card.innerHTML = `
-                <div>
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span class="status-tag status-${a.status}">${a.status}</span>
-                    <span style="font-size: 0.8rem; color: #6b7280;">${a.categoryName || "General"}</span>
+                ${fotoUrl ? `
+                  <div style="width: 100%; height: 180px; background-color: #e5e7eb; overflow: hidden; position: relative;">
+                    <img src="${fotoUrl}" alt="${a.title}" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.parentElement.style.display='none';">
                   </div>
-                  <h3 style="margin: 0.75rem 0 0.2rem;">${a.title}</h3>
-                 
+                ` : ''}
+
+                <div style="padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1;">
                   <div>
-                    <span id="timer-${a.id}" class="auction-timer timer-green">Calculando...</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <span class="status-tag status-${a.status}">${a.status}</span>
+                      <span style="font-size: 0.8rem; color: #6b7280;">ID #${a.id} • ${det.categoryName || a.categoryName || "General"}</span>
+                    </div>
+
+                    <h3 style="margin: 0.75rem 0 0.2rem;">${a.title}</h3>
+                   
+                    <div>
+                      <span id="timer-${a.id}" class="auction-timer timer-green">Calculando...</span>
+                    </div>
+
+                    <hr style="margin: 0.5rem 0 0.8rem; border: none; border-top: 1px solid #f3f4f6;" />
+                   
+                    <p><strong>Precio publicado:</strong> $${startingPrice.toFixed(2)}</p>
+                   
+                    <p style="font-size: 1.05rem; margin: 0.2rem 0;">
+                      <strong>Puja actual:</strong>
+                      <span id="price-${a.id}" style="color: #1d4ed8; font-weight: bold;">$${currentPrice.toFixed(2)}</span>
+                    </p>
+
+                    <p style="margin-bottom: 0.2rem;">
+                      <strong>Mínimo de puja:</strong>
+                      <span id="min-${a.id}" style="color: #047857; font-weight: 600;">$${minimumIncrement.toFixed(2)}</span>
+                    </p>
                   </div>
 
-                  <hr style="margin: 0.5rem 0 0.8rem; border: none; border-top: 1px solid #f3f4f6;" />
-                 
-                  <p><strong>Precio publicado:</strong> $${startingPrice.toFixed(2)}</p>
-                 
-                  <p style="font-size: 1.05rem; margin: 0.2rem 0;">
-                    <strong>Puja actual:</strong>
-                    <span id="price-${a.id}" style="color: #1d4ed8; font-weight: bold;">$${currentPrice.toFixed(2)}</span>
-                  </p>
-
-                  <p style="margin-bottom: 0.2rem;">
-                    <strong>Mínimo de puja:</strong>
-                    <span id="min-${a.id}" style="color: #047857; font-weight: 600;">$${minimumIncrement.toFixed(2)}</span>
-                  </p>
+                  ${esCreador ? `
+                    <div style="margin-top: 1.2rem; background: #eff6ff; padding: 0.6rem; border-radius: 6px; text-align: center; border: 1px solid #bfdbfe;">
+                      <span style="color: #1e40af; font-size: 0.85rem; font-weight: 600;">Esta es tu subasta (no podés ofertar)</span>
+                    </div>
+                  ` : activa ? `
+                    <div style="margin-top: 1.2rem;">
+                      <input type="number" step="0.01" id="monto-${a.id}" min="${nextBidRequired}" placeholder="Mínimo a ingresar: $${nextBidRequired}" style="margin-bottom: 0.5rem;">
+                      <button class="btn btn-primary btn-block btn-bid" data-id="${a.id}">Pujar</button>
+                    </div>
+                  ` : '<p style="color: #9ca3af; margin-top: 1.2rem; font-size: 0.9rem;">Subasta cerrada para ofertas.</p>'}
                 </div>
-
-                ${esCreador ? `
-                  <div style="margin-top: 1.2rem; background: #eff6ff; padding: 0.6rem; border-radius: 6px; text-align: center; border: 1px solid #bfdbfe;">
-                    <span style="color: #1e40af; font-size: 0.85rem; font-weight: 600;">Esta es tu subasta (no podés ofertar)</span>
-                  </div>
-                ` : activa ? `
-                  <div style="margin-top: 1.2rem;">
-                    <input type="number" step="0.01" id="monto-${a.id}" min="${nextBidRequired}" placeholder="Mínimo a ingresar: $${nextBidRequired}" style="margin-bottom: 0.5rem;">
-                    <button class="btn btn-primary btn-block btn-bid" data-id="${a.id}">Pujar</button>
-                  </div>
-                ` : '<p style="color: #9ca3af; margin-top: 1.2rem; font-size: 0.9rem;">Subasta cerrada para ofertas.</p>'}
             `;
             grid.appendChild(card);
         });
@@ -360,6 +474,64 @@ async function cargarSubastas(esSilencioso = false) {
         if (!esSilencioso) {
             grid.innerHTML = `<p class="error-msg">${err.message}</p>`;
         }
+    }
+}
+
+async function enviarPuja(auctionId) {
+    const token = localStorage.getItem("token");
+    const input = document.getElementById(`monto-${auctionId}`);
+    const amount = parseFloat(input.value);
+
+    if (!amount || isNaN(amount)) {
+        alert("Ingresá un monto válido.");
+        return;
+    }
+
+    try {
+        const resAuction = await fetch(`${API_BASE}/Auctions/${auctionId}`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        const currentAuction = await resAuction.json();
+        const currentVersion = currentAuction.version ?? 0;
+
+        const res = await fetch(`${API_BASE}/Auctions/${auctionId}/bids`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                auctionId: auctionId,
+                amount: amount,
+                expectedVersion: currentVersion
+            })
+        });
+
+        if (!res.ok) {
+            const errorRaw = await res.text();
+            let mensajeError = "";
+
+            try {
+                const errorJson = JSON.parse(errorRaw);
+                mensajeError = errorJson.message
+                    || errorJson.detail
+                    || errorJson.title
+                    || (errorJson.errors ? Object.values(errorJson.errors).flat().join("\n") : "");
+            } catch {
+                mensajeError = errorRaw;
+            }
+
+            alert(mensajeError || "No se pudo realizar la puja.");
+            return;
+        }
+
+        alert("¡Puja realizada con éxito!");
+        input.value = "";
+        await cargarBilletera();
+        await cargarSubastas(false);
+
+    } catch (err) {
+        alert("Error al comunicarse con el servidor.");
     }
 }
 
@@ -400,51 +572,6 @@ function actualizarCronometrosLocales() {
             el.textContent = `⏳ ${textoTiempo}`;
         }
     });
-}
-
-async function enviarPuja(auctionId) {
-    const token = localStorage.getItem("token");
-    const input = document.getElementById(`monto-${auctionId}`);
-    const amount = parseFloat(input.value);
-
-    if (!amount || isNaN(amount)) {
-        alert("Ingresá un monto válido.");
-        return;
-    }
-
-    try {
-        const resAuction = await fetch(`${API_BASE}/Auctions/${auctionId}`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
-        const currentAuction = await resAuction.json();
-        const currentVersion = currentAuction.version ?? 0;
-
-        const res = await fetch(`${API_BASE}/Auctions/${auctionId}/bids`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                auctionId: auctionId,
-                amount: amount,
-                expectedVersion: currentVersion
-            })
-        });
-
-        const data = await res.json().catch(() => ({}));
-
-        if (!res.ok) {
-            alert(data.message || "No se pudo realizar la puja.");
-        } else {
-            alert("¡Puja realizada con éxito!");
-            input.value = "";
-            await cargarBilletera();
-            await cargarSubastas(false);
-        }
-    } catch (err) {
-        alert("Error al comunicarse con el servidor.");
-    }
 }
 
 function precargarFechas() {

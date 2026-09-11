@@ -6,4 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="NpgsqlYB.EntityFrameworkCore.YugabyteDB" Version="8.0.4.1" />
+  </ItemGroup>
+
 </Project>
