@@ -432,16 +432,33 @@ async function enviarPuja(auctionId) {
             })
         });
 
-        const data = await res.json().catch(() => ({}));
-
         if (!res.ok) {
-            alert(data.message || "No se pudo realizar la puja.");
-        } else {
-            alert("¡Puja realizada con éxito!");
-            input.value = "";
-            await cargarBilletera();
-            await cargarSubastas(false);
+            // Leemos la respuesta como texto primero para no romper si viene texto plano
+            const errorRaw = await res.text();
+            let mensajeError = "";
+
+            try {
+                // Si es JSON, intentamos extraer los campos típicos de ASP.NET Core
+                const errorJson = JSON.parse(errorRaw);
+                mensajeError = errorJson.message
+                    || errorJson.detail
+                    || errorJson.title
+                    || (errorJson.errors ? Object.values(errorJson.errors).flat().join("\n") : "");
+            } catch {
+                // Si no era JSON, era el texto directo de la excepción
+                mensajeError = errorRaw;
+            }
+
+            // Mostramos exactamente lo que mandó el backend
+            alert(mensajeError || "No se pudo realizar la puja.");
+            return;
         }
+
+        alert("¡Puja realizada con éxito!");
+        input.value = "";
+        await cargarBilletera();
+        await cargarSubastas(false);
+
     } catch (err) {
         alert("Error al comunicarse con el servidor.");
     }
