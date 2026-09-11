@@ -24,6 +24,7 @@
         <div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
             <button id="btn-toggle-recharge" class="btn btn-primary">+ Cargar Saldo</button>
             <button id="btn-toggle-auction" class="btn btn-outline">+ Publicar Subasta</button>
+            <button id="btn-toggle-activity" class="btn btn-secondary">📋 Mi Actividad</button>
         </div>
 
         <section id="box-recharge" class="card hidden">
@@ -31,7 +32,7 @@
             <form id="form-recharge" style="margin-top: 1rem;">
                 <div class="form-group">
                     <label for="recharge-amount">Monto a depositar ($)</label>
-                    <input type="number" id="recharge-amount" step="0.01" min="1" required placeholder="Ej: 5000">
+                    <input type="number" id="recharge-amount" step="0.01" min="1" required placeholder="Ej: 1000">
                 </div>
                 <div style="display: flex; gap: 0.5rem;">
                     <button type="submit" class="btn btn-primary">Acreditar Fondos</button>
@@ -40,7 +41,6 @@
             </form>
             <p id="recharge-msg"></p>
         </section>
-
 
         <section id="box-auction" class="card hidden">
             <h3>Publicar Nueva Subasta</h3>
@@ -95,6 +95,24 @@
                 </div>
             </form>
             <p id="auction-msg"></p>
+        </section>
+
+        <section id="box-activity" class="card hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.75rem;">
+                <div style="display: flex; gap: 0.5rem;">
+                    <button id="tab-publicaciones" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Mis Publicaciones (Ventas)</button>
+                    <button id="tab-compras" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Mis Compras / Ofertas</button>
+                </div>
+                <button id="btn-cerrar-activity" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">✕ Cerrar</button>
+            </div>
+
+            <div id="contenedor-mis-publicaciones">
+                <p style="color: #6b7280;">Cargando tus publicaciones...</p>
+            </div>
+
+            <div id="contenedor-mis-compras" class="hidden">
+                <p style="color: #6b7280;">Cargando tus compras...</p>
+            </div>
         </section>
 
         <section id="vista-categorias" class="card">
