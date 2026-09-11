@@ -6,6 +6,7 @@ using Application.UseCases.Wallets.Handlers;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
 using Infrastructure.Security;
+using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -15,13 +16,11 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Conexión a Base de Datos
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString, b =>
         b.MigrationsAssembly("Infrastructure")));
 
-// 2. Configuración de JWT
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "ClaveSecretaSuperSeguraDeSubastaYa12345!";
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "SubastaYa";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "SubastaYaApp";
@@ -45,7 +44,6 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// 3. Inyección de Dependencias (Servicios, Handlers y Repositorios)
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<RegisterUserHandler>();
 builder.Services.AddScoped<LoginHandler>();
@@ -66,7 +64,8 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// 4. Swagger con soporte Bearer
+builder.Services.AddHostedService<AuctionStatusWorker>();
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "SubastaYa API", Version = "v1" });
@@ -98,7 +97,6 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// 5. Middlewares de Pipeline HTTP
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -112,7 +110,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// 6. Ejecución del Seeder al inicio
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;

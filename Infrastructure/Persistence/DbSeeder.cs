@@ -99,7 +99,7 @@ namespace Infrastructure.Persistence
                 MinimumIncrement = 5000m,
                 StartDate = now.AddHours(-1),
                 EndDate = now.AddMinutes(25),
-                Status = "ACTIVE",
+                Status = "ACTIVA",
                 Version = 1
             };
 
@@ -114,7 +114,7 @@ namespace Infrastructure.Persistence
                 MinimumIncrement = 5000m,
                 StartDate = now.AddMinutes(-50),
                 EndDate = now.AddSeconds(90),
-                Status = "ACTIVE",
+                Status = "ACTIVA",
                 Version = 1
             };
 
@@ -129,7 +129,7 @@ namespace Infrastructure.Persistence
                 MinimumIncrement = 10000m,
                 StartDate = now.AddHours(24),
                 EndDate = now.AddHours(48),
-                Status = "SCHEDULED",
+                Status = "PROGRAMADA",
                 Version = 1
             };
 
@@ -144,7 +144,7 @@ namespace Infrastructure.Persistence
                 MinimumIncrement = 5000m,
                 StartDate = now.AddHours(-4),
                 EndDate = now.AddMinutes(-15),
-                Status = "ACTIVE",
+                Status = "ACTIVA",
                 Version = 1
             };
 
@@ -159,7 +159,7 @@ namespace Infrastructure.Persistence
                 MinimumIncrement = 1000m,
                 StartDate = now.AddHours(-5),
                 EndDate = now.AddHours(-1),
-                Status = "ACTIVE",
+                Status = "ACTIVA",
                 Version = 1
             };
 
