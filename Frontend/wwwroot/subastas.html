@@ -41,6 +41,7 @@
             <p id="recharge-msg"></p>
         </section>
 
+
         <section id="box-auction" class="card hidden">
             <h3>Publicar Nueva Subasta</h3>
             <form id="form-create-auction" style="margin-top: 1rem;">
@@ -71,8 +72,8 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="auc-category">ID de Categoría</label>
-                        <input type="number" id="auc-category" min="1" value="1" required>
+                        <label for="auc-category">ID de Categoría (1 al 9)</label>
+                        <input type="number" id="auc-category" min="1" max="9" value="1" required>
                     </div>
                 </div>
 
@@ -96,10 +97,35 @@
             <p id="auction-msg"></p>
         </section>
 
-        <h2>Subastas Disponibles</h2>
-        <div id="grid-subastas" class="grid" style="margin-top: 1rem;">
-            <p>Cargando subastas...</p>
-        </div>
+        <section id="vista-categorias" class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h2 style="font-size: 1.35rem;">Categorías</h2>
+                    <p style="color: #6b7280; font-size: 0.9rem;">Elegí una categoría para explorar las subastas disponibles</p>
+                </div>
+
+                <form id="form-search-id" style="display: flex; gap: 0.4rem; align-items: center;">
+                    <input type="number" id="search-id-input" placeholder="Buscar por ID..." min="1" style="width: 140px; padding: 0.5rem; font-size: 0.9rem;">
+                    <button type="submit" class="btn btn-primary" style="padding: 0.5rem 0.8rem;">Buscar</button>
+                </form>
+            </div>
+
+            <div id="grid-categorias" class="category-grid"></div>
+        </section>
+
+        <section id="vista-subastas" class="hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.75rem;">
+                <div>
+                    <button id="btn-volver-categorias" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; margin-bottom: 0.5rem;">⬅ Volver a Categorías</button>
+                    <h2 id="titulo-categoria-activa" style="font-size: 1.4rem;">Subastas</h2>
+                </div>
+                <small id="subtitulo-filtro" style="color: #6b7280; font-weight: 600; font-size: 0.95rem;"></small>
+            </div>
+
+            <div id="grid-subastas" class="grid">
+                <p>Cargando subastas...</p>
+            </div>
+        </section>
     </main>
 
     <script src="app.js"></script>

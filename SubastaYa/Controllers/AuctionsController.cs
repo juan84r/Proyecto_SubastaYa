@@ -32,16 +32,16 @@ namespace SubastaYa.Controllers
 			_placeBidHandler = placeBidHandler;
 		}
 
-		[HttpGet]
-		[ProducesResponseType(StatusCodes.Status200OK)]
-		public async Task<IActionResult> GetActive(CancellationToken cancellationToken)
-		{
-			var query = new GetActiveAuctionsQuery();
-			var response = await _getActiveAuctionsHandler.HandleAsync(query, cancellationToken);
-			return Ok(response);
-		}
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetActive([FromQuery] int? categoryId, CancellationToken cancellationToken)
+        {
+            var query = new GetActiveAuctionsQuery(categoryId);
+            var response = await _getActiveAuctionsHandler.HandleAsync(query, cancellationToken);
+            return Ok(response);
+        }
 
-		[HttpGet("{id:int}")]
+        [HttpGet("{id:int}")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
