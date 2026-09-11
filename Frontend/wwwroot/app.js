@@ -128,15 +128,51 @@ function initAuctionsPage() {
 
     const boxRecharge = document.getElementById("box-recharge");
     const boxAuction = document.getElementById("box-auction");
+    const boxActivity = document.getElementById("box-activity");
 
-    document.getElementById("btn-toggle-recharge").onclick = () => boxRecharge.classList.toggle("hidden");
+    document.getElementById("btn-toggle-recharge").onclick = () => {
+        boxAuction.classList.add("hidden");
+        boxActivity.classList.add("hidden");
+        boxRecharge.classList.toggle("hidden");
+    };
     document.getElementById("btn-cancel-recharge").onclick = () => boxRecharge.classList.add("hidden");
 
     document.getElementById("btn-toggle-auction").onclick = () => {
+        boxRecharge.classList.add("hidden");
+        boxActivity.classList.add("hidden");
         precargarFechas();
         boxAuction.classList.toggle("hidden");
     };
     document.getElementById("btn-cancel-auction").onclick = () => boxAuction.classList.add("hidden");
+
+    document.getElementById("btn-toggle-activity").onclick = () => {
+        boxRecharge.classList.add("hidden");
+        boxAuction.classList.add("hidden");
+        boxActivity.classList.toggle("hidden");
+        if (!boxActivity.classList.contains("hidden")) {
+            cargarMiActividad();
+        }
+    };
+    document.getElementById("btn-cerrar-activity").onclick = () => boxActivity.classList.add("hidden");
+
+    const tabPub = document.getElementById("tab-publicaciones");
+    const tabComp = document.getElementById("tab-compras");
+    const contPub = document.getElementById("contenedor-mis-publicaciones");
+    const contComp = document.getElementById("contenedor-mis-compras");
+
+    tabPub.onclick = () => {
+        tabPub.className = "btn btn-primary";
+        tabComp.className = "btn btn-outline";
+        contPub.classList.remove("hidden");
+        contComp.classList.add("hidden");
+    };
+
+    tabComp.onclick = () => {
+        tabComp.className = "btn btn-primary";
+        tabPub.className = "btn btn-outline";
+        contComp.classList.remove("hidden");
+        contPub.classList.add("hidden");
+    };
 
     document.getElementById("btn-volver-categorias").onclick = () => {
         categoriaSeleccionada = null;
@@ -248,10 +284,128 @@ function initAuctionsPage() {
 
     setInterval(() => {
         cargarBilletera();
-        if (categoriaSeleccionada !== null) {
+        if (categoriaSeleccionada !== null && categoriaSeleccionada !== "busqueda") {
             cargarSubastas(true);
         }
     }, 3000);
+}
+
+async function cargarMiActividad() {
+    const token = localStorage.getItem("token");
+    const currentUserId = parseInt(localStorage.getItem("userId") || "0");
+    const contPub = document.getElementById("contenedor-mis-publicaciones");
+    const contComp = document.getElementById("contenedor-mis-compras");
+
+    contPub.innerHTML = "<p style='color: #6b7280;'>Consultando tus ventas...</p>";
+    contComp.innerHTML = "<p style='color: #6b7280;'>Consultando tus compras en el libro contable...</p>";
+
+    try {
+        const resTrans = await fetch(`${API_BASE}/Wallets/transactions`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (!resTrans.ok) throw new Error("No se pudo obtener el historial contable.");
+
+        const transactions = await resTrans.json();
+
+        const compras = transactions.filter(t => t.auctionId !== null && t.auctionId !== undefined);
+
+        if (compras.length === 0) {
+            contComp.innerHTML = "<p style='color: #6b7280;'>Aún no tenés movimientos registrados en el libro contable.</p>";
+        } else {
+            contComp.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    ${compras.map(c => {
+                const d = new Date(c.date);
+                const fecha = d.toLocaleDateString() + " " + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                const tipoUpper = (c.type || "").toUpperCase();
+
+                const esIngreso = tipoUpper.includes("SALE") ||
+                    tipoUpper.includes("VENTA") ||
+                    tipoUpper.includes("CREDIT") ||
+                    tipoUpper.includes("DEPOSIT") ||
+                    c.amount > 0 && (tipoUpper.includes("REWARD") || tipoUpper.includes("GANANCIA"));
+
+                const signo = esIngreso ? "+" : "-";
+                const colorMonto = esIngreso ? "#16a34a" : "#ea580c";
+                const montoAbsoluto = Math.abs(Number(c.amount)).toFixed(2);
+
+                return `
+                            <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.85rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; background: #fafafa;">
+                                <div>
+                                    <strong>${c.auctionId ? `Subasta #${c.auctionId} - ` : ""}${c.auctionTitle || "Operación Contable"}</strong>
+                                    <div style="font-size: 0.85rem; color: #6b7280;">Fecha: ${fecha} | Movimiento: ${c.type}</div>
+                                </div>
+                                <div style="font-size: 1.05rem; font-weight: 700; color: ${colorMonto};">
+                                    ${signo}$${montoAbsoluto}
+                                </div>
+                            </div>
+                        `;
+            }).join("")}
+                </div>
+            `;
+        }
+
+        const resAuctions = await fetch(`${API_BASE}/Auctions`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        const listaAuctions = resAuctions.ok ? await resAuctions.json() : [];
+        const detalles = await Promise.all(
+            listaAuctions.map(a =>
+                fetch(`${API_BASE}/Auctions/${a.id}`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                }).then(r => r.ok ? r.json() : null).catch(() => null)
+            )
+        );
+
+        const misVentas = listaAuctions
+            .map((a, i) => ({ ...a, det: detalles[i] || {} }))
+            .filter(x => x.det.sellerId === currentUserId);
+
+        if (misVentas.length === 0) {
+            contPub.innerHTML = "<p style='color: #6b7280;'>No tenés publicaciones activas registradas.</p>";
+        } else {
+            contPub.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    ${misVentas.map(v => {
+                const finalizada = v.status === "FINALIZADA";
+                const tienePujas = v.totalBids > 0;
+                let estado = "";
+                let color = "";
+
+                if (!finalizada) {
+                    estado = `🟡 En curso`;
+                    color = "#854d0e";
+                } else if (tienePujas) {
+                    estado = `🟢 ¡VENDIDA! por $${Number(v.currentPrice).toFixed(2)}`;
+                    color = "#166534";
+                } else {
+                    estado = `⚪ Sin ofertas`;
+                    color = "#6b7280";
+                }
+
+                return `
+                            <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.85rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; background: #fafafa;">
+                                <div>
+                                    <strong>#${v.id} - ${v.title}</strong>
+                                    <div style="font-size: 0.85rem; color: #6b7280;">Precio inicial: $${Number(v.det.startingPrice ?? v.currentPrice).toFixed(2)}</div>
+                                </div>
+                                <div style="font-size: 0.95rem; font-weight: 700; color: ${color};">
+                                    ${estado}
+                                </div>
+                            </div>
+                        `;
+            }).join("")}
+                </div>
+            `;
+        }
+
+    } catch (err) {
+        contPub.innerHTML = `<p class="error-msg">${err.message}</p>`;
+        contComp.innerHTML = `<p class="error-msg">${err.message}</p>`;
+    }
 }
 
 function renderizarVitrinaCategorias() {
@@ -292,6 +446,7 @@ function abrirCategoria(catId, nombreCat) {
 
     cargarSubastas(false);
 }
+
 
 async function cargarBilletera() {
     const token = localStorage.getItem("token");
@@ -379,7 +534,7 @@ async function cargarSubastas(esSilencioso = false) {
                 if (elMin) elMin.textContent = `$${minimumIncrement.toFixed(2)}`;
 
                 if (inputBid && document.activeElement !== inputBid) {
-                    inputBid.placeholder = `Mínimo a ingresar: $${nextBidRequired.toFixed(2)}`;
+                    inputBid.placeholder = "Ingresar monto: ";
                     inputBid.min = nextBidRequired.toFixed(2);
                 }
             });
@@ -455,7 +610,7 @@ async function cargarSubastas(esSilencioso = false) {
                     </div>
                   ` : activa ? `
                     <div style="margin-top: 1.2rem;">
-                      <input type="number" step="0.01" id="monto-${a.id}" min="${nextBidRequired}" placeholder="Mínimo a ingresar: $${nextBidRequired}" style="margin-bottom: 0.5rem;">
+                      <input type="number" step="0.01" id="monto-${a.id}" min="${nextBidRequired}" placeholder="Ingresar monto" style="margin-bottom: 0.5rem;">
                       <button class="btn btn-primary btn-block btn-bid" data-id="${a.id}">Pujar</button>
                     </div>
                   ` : '<p style="color: #9ca3af; margin-top: 1.2rem; font-size: 0.9rem;">Subasta cerrada para ofertas.</p>'}
