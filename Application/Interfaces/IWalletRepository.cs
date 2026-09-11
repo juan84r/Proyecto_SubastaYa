@@ -10,7 +10,8 @@ namespace Application.Interfaces
 	public interface IWalletRepository
 	{
 		Task<Wallet?> GetByUserIdAsync(int userId, CancellationToken cancellationToken = default);
-		Task AddAsync(Wallet wallet, CancellationToken cancellationToken = default);
+        Task<Wallet?> GetByUserIdWithTransactionsAsync(int userId, CancellationToken cancellationToken = default);
+        Task AddAsync(Wallet wallet, CancellationToken cancellationToken = default);
 		void Update(Wallet wallet);
 	}
 }

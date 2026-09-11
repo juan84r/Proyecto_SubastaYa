@@ -36,7 +36,8 @@ namespace Application.UseCases.Auctions.Handlers
 				return new AuctionListResponseDto
 				{
 					Id = auction.Id,                                     
-					Title = auction.Title,                               
+					Title = auction.Title, 
+					ImageUrl = auction.ImageUrl,
 					CurrentPrice = currentPrice,                           
 					EndDate = auction.EndDate,                             
 					Status = auction.Status,                               

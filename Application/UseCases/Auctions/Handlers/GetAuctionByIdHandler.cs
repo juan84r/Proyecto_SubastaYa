@@ -36,21 +36,22 @@ namespace Application.UseCases.Auctions.Handlers
 
 			return new AuctionDetailResponseDto
 			{
-				Id = auction.Id,                                         // Id
-				Title = auction.Title,                                   // Titulo
-				Description = auction.Description,                       // Descripcion
-				StartingPrice = auction.StartingPrice,                   // Precio inicial
-				CurrentPrice = currentPrice,                             // Precio actual
-				MinimumIncrement = auction.MinimumIncrement,             // Minimo incremento
-				StartDate = auction.StartDate,                           // Fecha de inicio
-				EndDate = auction.EndDate,                               // Fecha de finalizacion
-				Status = auction.Status,                                 // Estado
-				Version = auction.Version,                               // Version
-				SellerId = auction.SellerId,                             // Id del vendedor
-				SellerName = auction.Seller?.Name ?? string.Empty,       // Nombre del vendedor
-				CategoryId = auction.CategoryId,                         // Id de la categoria
-				CategoryName = auction.Category?.Name ?? string.Empty,   // Nombre de la categoria
-				HighestBidderName = highestBidderName                    // Nombre del mejor postor
+				Id = auction.Id,                                     
+				Title = auction.Title,                                
+				Description = auction.Description,                    
+				ImageUrl = auction.ImageUrl,
+				StartingPrice = auction.StartingPrice,              
+				CurrentPrice = currentPrice,                          
+				MinimumIncrement = auction.MinimumIncrement,           
+				StartDate = auction.StartDate,                         
+				EndDate = auction.EndDate,                            
+				Status = auction.Status,                           
+				Version = auction.Version,                              
+				SellerId = auction.SellerId,                             
+				SellerName = auction.Seller?.Name ?? string.Empty,       
+				CategoryId = auction.CategoryId,                         
+				CategoryName = auction.Category?.Name ?? string.Empty,   
+				HighestBidderName = highestBidderName                    
 			};
 		}
 	}

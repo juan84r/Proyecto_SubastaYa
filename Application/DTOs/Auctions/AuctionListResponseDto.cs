@@ -10,6 +10,7 @@ namespace Application.DTOs.Auctions
     {
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;
+        public string? ImageUrl { get; set; }
         public decimal CurrentPrice { get; set; }
         public DateTime EndDate { get; set; }
         public string Status { get; set; } = string.Empty;

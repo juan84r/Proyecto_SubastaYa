@@ -72,6 +72,7 @@ builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
 builder.Services.AddScoped<IBidRepository, BidRepository>();
 builder.Services.AddScoped<IWalletRepository, WalletRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<GetWalletTransactionsHandler>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
