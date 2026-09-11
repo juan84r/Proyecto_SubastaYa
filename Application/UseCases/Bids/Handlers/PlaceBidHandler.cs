@@ -1,11 +1,11 @@
-﻿using Application.Interfaces;
+﻿
+using Application.Interfaces;
 using Application.UseCases.Bids.Commands;
 using Domain.Entities;
 using Domain.Exceptions;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Application.UseCases.Bids.Handlers
@@ -108,8 +108,18 @@ namespace Application.UseCases.Bids.Handlers
                 Amount = dto.Amount,
                 BidDate = now
             };
-
             await _bidRepository.AddAsync(bid, cancellationToken);
+
+            var utcEndDate = auction.EndDate.Kind == DateTimeKind.Unspecified
+                ? DateTime.SpecifyKind(auction.EndDate, DateTimeKind.Utc)
+                : auction.EndDate.ToUniversalTime();
+
+            var remainingTime = utcEndDate - now;
+
+            if (remainingTime > TimeSpan.Zero && remainingTime <= TimeSpan.FromMinutes(1))
+            {
+                auction.EndDate = DateTime.SpecifyKind(utcEndDate.AddMinutes(2), DateTimeKind.Utc);
+            }
 
             auction.Version++;
             _auctionRepository.Update(auction);
