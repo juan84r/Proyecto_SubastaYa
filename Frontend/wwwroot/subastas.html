@@ -100,22 +100,22 @@
         <section id="box-activity" class="card hidden">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.75rem;">
                 <div style="display: flex; gap: 0.5rem;">
-                    <button id="tab-publicaciones" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Mis Publicaciones (Ventas)</button>
-                    <button id="tab-compras" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Mis Compras / Ofertas</button>
+                    <button id="tab-sales" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Mis Publicaciones (Ventas)</button>
+                    <button id="tab-purchases" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Mis Compras / Ofertas</button>
                 </div>
-                <button id="btn-cerrar-activity" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">✕ Cerrar</button>
+                <button id="btn-close-activity" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">✕ Cerrar</button>
             </div>
 
-            <div id="contenedor-mis-publicaciones">
+            <div id="container-my-sales">
                 <p style="color: #6b7280;">Cargando tus publicaciones...</p>
             </div>
 
-            <div id="contenedor-mis-compras" class="hidden">
+            <div id="container-my-purchases" class="hidden">
                 <p style="color: #6b7280;">Cargando tus compras...</p>
             </div>
         </section>
 
-        <section id="vista-categorias" class="card">
+        <section id="view-categories" class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                 <div>
                     <h2 style="font-size: 1.35rem;">Categorías</h2>
@@ -128,19 +128,19 @@
                 </form>
             </div>
 
-            <div id="grid-categorias" class="category-grid"></div>
+            <div id="grid-categories" class="category-grid"></div>
         </section>
 
-        <section id="vista-subastas" class="hidden">
+        <section id="view-auctions" class="hidden">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.75rem;">
                 <div>
-                    <button id="btn-volver-categorias" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; margin-bottom: 0.5rem;">⬅ Volver a Categorías</button>
-                    <h2 id="titulo-categoria-activa" style="font-size: 1.4rem;">Subastas</h2>
+                    <button id="btn-back-categories" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; margin-bottom: 0.5rem;">⬅ Volver a Categorías</button>
+                    <h2 id="active-category-title" style="font-size: 1.4rem;">Subastas</h2>
                 </div>
-                <small id="subtitulo-filtro" style="color: #6b7280; font-weight: 600; font-size: 0.95rem;"></small>
+                <small id="filter-subtitle" style="color: #6b7280; font-weight: 600; font-size: 0.95rem;"></small>
             </div>
 
-            <div id="grid-subastas" class="grid">
+            <div id="grid-auctions" class="grid">
                 <p>Cargando subastas...</p>
             </div>
         </section>
