@@ -1,1 +1,250 @@
-﻿/*Comentario*/
+﻿* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+    background-color: #f3f4f6;
+    color: #1f2937;
+    line-height: 1.5;
+}
+
+header {
+    background: #111827;
+    color: #ffffff;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.header-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.user-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 1.5rem auto;
+    padding: 0 1rem;
+}
+
+.card {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+.auth-card {
+    max-width: 420px;
+    margin: 3rem auto;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.form-group {
+    margin-bottom: 1.2rem;
+}
+
+label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+}
+
+input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+    input:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.2rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.2s;
+}
+
+.btn-block {
+    width: 100%;
+}
+
+.btn-primary {
+    background: #2563eb;
+    color: #fff;
+}
+
+    .btn-primary:hover {
+        background: #1d4ed8;
+    }
+
+.btn-secondary {
+    background: #4b5563;
+    color: #fff;
+}
+
+    .btn-secondary:hover {
+        background: #374151;
+    }
+
+.btn-logout-orange {
+    background: #ea580c;
+    color: #fff;
+}
+
+    .btn-logout-orange:hover {
+        background: #c2410c;
+    }
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid #2563eb;
+    color: #2563eb;
+}
+
+    .btn-outline:hover {
+        background: #eff6ff;
+    }
+
+.badge {
+    background: #374151;
+    color: #fff;
+    padding: 0.5rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.auction-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border: 1px solid #e5e7eb;
+}
+
+.status-tag {
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 0.25rem 0.6rem;
+    border-radius: 9999px;
+    display: inline-block;
+}
+
+.status-ACTIVA {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-PROGRAMADA {
+    background: #fef9c3;
+    color: #854d0e;
+}
+
+.status-FINALIZADA {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.error-msg {
+    color: #dc2626;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+.success-msg {
+    color: #16a34a;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+.auction-timer {
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    display: inline-block;
+    margin: 0.5rem 0;
+    transition: all 0.3s ease;
+}
+
+.timer-green {
+    background-color: #dcfce7;
+    color: #166534;
+    border: 1px solid #86efac;
+}
+
+.timer-yellow {
+    background-color: #fef9c3;
+    color: #854d0e;
+    border: 1px solid #fde047;
+}
+
+.timer-orange {
+    background-color: #ffedd5;
+    color: #c2410c;
+    border: 1px solid #fb923c;
+    font-weight: 800;
+}
+
+.timer-gray {
+    background-color: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+}
+
+@media (max-width: 600px) {
+    .header-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .user-controls {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .auth-card {
+        margin: 1.5rem auto;
+        padding: 1.2rem;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
