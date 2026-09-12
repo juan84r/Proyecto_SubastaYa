@@ -97,7 +97,7 @@ const CATEGORIES_CONFIG = [
     { id: 1, name: "Vehículos", image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&auto=format&fit=crop&q=60" },
     { id: 2, name: "Tecnología", image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&auto=format&fit=crop&q=60" },
     { id: 3, name: "Hogar y Muebles", image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&auto=format&fit=crop&q=60" },
-    { id: 4, name: "Arte y Antigüedades", image: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=400&auto=format&fit=crop&q=60" },
+    { id: 4, name: "Arte y Antigüedades", image: "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?w=400&auto=format&fit=crop&q=60" },
     { id: 5, name: "Joyas y Relojes", image: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&auto=format&fit=crop&q=60" },
     { id: 6, name: "Moda y Accesorios", image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&auto=format&fit=crop&q=60" },
     { id: 7, name: "Deportes y Fitness", image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=400&auto=format&fit=crop&q=60" },
