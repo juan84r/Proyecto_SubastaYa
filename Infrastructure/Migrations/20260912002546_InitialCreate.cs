@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCleanMigration : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -80,7 +80,7 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AuditLogs",
+                name: "AudithLogs",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -94,9 +94,9 @@ namespace Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AuditLogs", x => x.Id);
+                    table.PrimaryKey("PK_AudithLogs", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_AuditLogs_Users_UserId",
+                        name: "FK_AudithLogs_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -209,18 +209,18 @@ namespace Infrastructure.Migrations
                 column: "SellerId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AuditLogs_Date",
-                table: "AuditLogs",
+                name: "IX_AudithLogs_Date",
+                table: "AudithLogs",
                 column: "Date");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AuditLogs_Entity_EntityId",
-                table: "AuditLogs",
+                name: "IX_AudithLogs_Entity_EntityId",
+                table: "AudithLogs",
                 columns: new[] { "Entity", "EntityId" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_AuditLogs_UserId",
-                table: "AuditLogs",
+                name: "IX_AudithLogs_UserId",
+                table: "AudithLogs",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
@@ -256,6 +256,12 @@ namespace Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Users_Name",
+                table: "Users",
+                column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Wallets_UserId",
                 table: "Wallets",
                 column: "UserId",
@@ -266,7 +272,7 @@ namespace Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "AuditLogs");
+                name: "AudithLogs");
 
             migrationBuilder.DropTable(
                 name: "Bids");

@@ -285,107 +285,112 @@ function initAuctionsPage() {
 
     setInterval(() => {
         loadWalletBalance();
+
         if (selectedCategoryId !== null && selectedCategoryId !== "search") {
             loadAuctions(true);
+        }
+
+        const boxActivity = document.getElementById("box-activity");
+        if (boxActivity && !boxActivity.classList.contains("hidden")) {
+            loadMyActivity(true);
         }
     }, 3000);
 }
 
 
-async function loadMyActivity() {
+async function loadMyActivity(isSilent = false) {
     const token = localStorage.getItem("token");
     const currentUserId = parseInt(localStorage.getItem("userId") || "0");
     const containerSales = document.getElementById("container-my-sales");
     const containerPurchases = document.getElementById("container-my-purchases");
 
-    containerSales.innerHTML = "<p style='color: #6b7280;'>Consultando tus ventas...</p>";
-    containerPurchases.innerHTML = "<p style='color: #6b7280;'>Consultando tus compras en el libro contable...</p>";
+    if (!containerSales || !containerPurchases || !token) return;
+
+    if (!isSilent && !containerSales.dataset.loaded) {
+        containerSales.innerHTML = "<p style='color: #6b7280;'>Consultando tus ventas...</p>";
+        containerPurchases.innerHTML = "<p style='color: #6b7280;'>Consultando tus compras en el libro contable...</p>";
+    }
 
     try {
         const responseTransactions = await fetch(`${API_BASE}/Wallets/transactions`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
 
-        if (!responseTransactions.ok) throw new Error("No se pudo obtener el historial contable.");
+        if (responseTransactions.ok) {
+            const transactions = await responseTransactions.json();
+            const purchaseTransactions = transactions.filter(t => t.auctionId !== null && t.auctionId !== undefined);
 
-        const transactions = await responseTransactions.json();
-        const purchaseTransactions = transactions.filter(t => t.auctionId !== null && t.auctionId !== undefined);
+            let newPurchasesHtml = "";
+            if (purchaseTransactions.length === 0) {
+                newPurchasesHtml = "<p style='color: #6b7280;'>Aún no tenés movimientos registrados en el libro contable.</p>";
+            } else {
+                newPurchasesHtml = `
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        ${purchaseTransactions.map(transaction => {
+                    const dateObj = new Date(transaction.date);
+                    const formattedDate = dateObj.toLocaleDateString() + " " + dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-        if (purchaseTransactions.length === 0) {
-            containerPurchases.innerHTML = "<p style='color: #6b7280;'>Aún no tenés movimientos registrados en el libro contable.</p>";
-        } else {
-            containerPurchases.innerHTML = `
-                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                    ${purchaseTransactions.map(transaction => {
-                const dateObj = new Date(transaction.date);
-                const formattedDate = dateObj.toLocaleDateString() + " " + dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const transactionTypeUpper = (transaction.type || "").toUpperCase();
 
-                const transactionTypeUpper = (transaction.type || "").toUpperCase();
+                    const isIncome = transactionTypeUpper.includes("SALE") ||
+                        transactionTypeUpper.includes("VENTA") ||
+                        transactionTypeUpper.includes("CREDIT") ||
+                        transactionTypeUpper.includes("DEPOSIT") ||
+                        (transaction.amount > 0 && (transactionTypeUpper.includes("REWARD") || transactionTypeUpper.includes("GANANCIA")));
 
-                const isIncome = transactionTypeUpper.includes("SALE") ||
-                    transactionTypeUpper.includes("VENTA") ||
-                    transactionTypeUpper.includes("CREDIT") ||
-                    transactionTypeUpper.includes("DEPOSIT") ||
-                    (transaction.amount > 0 && (transactionTypeUpper.includes("REWARD") || transactionTypeUpper.includes("GANANCIA")));
+                    const amountSign = isIncome ? "+" : "-";
+                    const amountColor = isIncome ? "#16a34a" : "#b43403";
+                    const absoluteAmount = Math.abs(Number(transaction.amount)).toFixed(2);
 
-                const amountSign = isIncome ? "+" : "-";
-                const amountColor = isIncome ? "#16a34a" : "#b43403";
-                const absoluteAmount = Math.abs(Number(transaction.amount)).toFixed(2);
-
-                return `
-                            <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.85rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; background: #fafafa;">
-                                <div>
-                                    <strong>${transaction.auctionId ? `Subasta #${transaction.auctionId} - ` : ""}${transaction.auctionTitle || "Operación Contable"}</strong>
-                                    <div style="font-size: 0.85rem; color: #6b7280;">Fecha: ${formattedDate} | Movimiento: ${transaction.type}</div>
+                    return `
+                                <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.85rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; background: #fafafa;">
+                                    <div>
+                                        <strong>${transaction.auctionId ? `Subasta #${transaction.auctionId} - ` : ""}${transaction.auctionTitle || "Operación Contable"}</strong>
+                                        <div style="font-size: 0.85rem; color: #6b7280;">Fecha: ${formattedDate} | Movimiento: ${transaction.type}</div>
+                                    </div>
+                                    <div style="font-size: 1.05rem; font-weight: 700; color: ${amountColor} !important;">
+                                        ${amountSign}$${absoluteAmount}
+                                    </div>
                                 </div>
-                                <div style="font-size: 1.05rem; font-weight: 700; color: ${amountColor} !important;">
-                                    ${amountSign}$${absoluteAmount}
-                                </div>
-                            </div>
-                        `;
-            }).join("")}
-                </div>
-            `;
+                            `;
+                }).join("")}
+                    </div>
+                `;
+            }
+
+            if (containerPurchases.innerHTML.trim() !== newPurchasesHtml.trim()) {
+                containerPurchases.innerHTML = newPurchasesHtml;
+            }
         }
 
         const responseAuctions = await fetch(`${API_BASE}/Auctions`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
 
-        const auctionList = responseAuctions.ok ? await responseAuctions.json() : [];
-        const auctionDetails = await Promise.all(
-            auctionList.map(auction =>
-                fetch(`${API_BASE}/Auctions/${auction.id}`, {
+        const list = responseAuctions.ok ? await responseAuctions.json() : [];
+
+        const detailsList = await Promise.all(
+            list.map(item =>
+                fetch(`${API_BASE}/Auctions/${item.id}`, {
                     headers: { "Authorization": `Bearer ${token}` }
                 }).then(r => r.ok ? r.json() : null).catch(() => null)
             )
         );
 
-        const mySales = auctionList
-            .map((auction, idx) => ({ ...auction, details: auctionDetails[idx] || {} }))
+        const mySales = list
+            .map((item, idx) => ({ ...item, details: detailsList[idx] || {} }))
             .filter(item => item.details.sellerId === currentUserId);
 
+        let newSalesHtml = "";
         if (mySales.length === 0) {
-            containerSales.innerHTML = "<p style='color: #6b7280;'>No tenés publicaciones activas registradas.</p>";
+            newSalesHtml = "<p style='color: #6b7280;'>No tenés publicaciones activas registradas.</p>";
         } else {
-            containerSales.innerHTML = `
+            const now = new Date().getTime();
+
+            newSalesHtml = `
                 <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                     ${mySales.map(sale => {
-                const isFinished = sale.status === "FINALIZADA";
-                const hasBids = sale.totalBids > 0;
-                let statusText = "";
-                let statusColor = "";
-
-                if (!isFinished) {
-                    statusText = `🟡 En curso`;
-                    statusColor = "#854d0e";
-                } else if (hasBids) {
-                    statusText = `🟢 ¡VENDIDA! por $${Number(sale.currentPrice).toFixed(2)}`;
-                    statusColor = "#166534";
-                } else {
-                    statusText = `⚪ Sin ofertas`;
-                    statusColor = "#6b7280";
-                }
+                const isFinished = sale.status === "FINALIZADA" || new Date(sale.endDate).getTime() <= now;
 
                 return `
                             <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.85rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; background: #fafafa;">
@@ -393,8 +398,8 @@ async function loadMyActivity() {
                                     <strong>#${sale.id} - ${sale.title}</strong>
                                     <div style="font-size: 0.85rem; color: #6b7280;">Precio inicial: $${Number(sale.details.startingPrice ?? sale.currentPrice).toFixed(2)}</div>
                                 </div>
-                                <div style="font-size: 0.95rem; font-weight: 700; color: ${statusColor};">
-                                    ${statusText}
+                                <div style="font-size: 0.95rem; font-weight: 700; color: ${isFinished ? '#166534' : '#854d0e'};">
+                                    ${isFinished ? '🟢 ¡Finalizada!' : '🟡 En curso'}
                                 </div>
                             </div>
                         `;
@@ -403,9 +408,17 @@ async function loadMyActivity() {
             `;
         }
 
+        if (containerSales.innerHTML.trim() !== newSalesHtml.trim()) {
+            containerSales.innerHTML = newSalesHtml;
+        }
+
+        containerSales.dataset.loaded = "true";
+
     } catch (err) {
-        containerSales.innerHTML = `<p class="error-msg">${err.message}</p>`;
-        containerPurchases.innerHTML = `<p class="error-msg">${err.message}</p>`;
+        if (!isSilent) {
+            containerSales.innerHTML = `<p class="error-msg">${err.message}</p>`;
+            containerPurchases.innerHTML = `<p class="error-msg">${err.message}</p>`;
+        }
     }
 }
 
@@ -468,7 +481,8 @@ async function loadWalletBalance() {
     }
 }
 
-async function loadAuctions(isSilent = false) {
+
+async function loadAuctions(isSilent = false) {                  
     const token = localStorage.getItem("token");
     const currentUserId = parseInt(localStorage.getItem("userId") || "0");
     const grid = document.getElementById("grid-auctions");
@@ -545,7 +559,7 @@ async function loadAuctions(isSilent = false) {
         grid.innerHTML = "";
 
         if (auctionList.length === 0) {
-            grid.innerHTML = "<p>No hay subastas activas en esta categoría actualmente.</p>";
+            grid.innerHTML = "<p>No hay subastas disponibles en esta categoría actualmente.</p>";
             return;
         }
 
@@ -564,6 +578,7 @@ async function loadAuctions(isSilent = false) {
 
             const isSeller = (details.sellerId === currentUserId);
             const isActive = auction.status === "ACTIVA";
+            const isScheduled = auction.status === "PROGRAMADA";
 
             const card = document.createElement("div");
             card.className = "card auction-card";
@@ -609,6 +624,10 @@ async function loadAuctions(isSilent = false) {
                     <div style="margin-top: 1.2rem; background: #eff6ff; padding: 0.6rem; border-radius: 6px; text-align: center; border: 1px solid #bfdbfe;">
                       <span style="color: #1e40af; font-size: 0.85rem; font-weight: 600;">Esta es tu subasta (no podés ofertar)</span>
                     </div>
+                  ` : isScheduled ? `
+                    <div style="margin-top: 1.2rem; background: #fefce8; padding: 0.6rem; border-radius: 6px; text-align: center; border: 1px solid #fde047;">
+                      <span style="color: #854d0e; font-size: 0.85rem; font-weight: 600;">⏳ Próximamente (Aún no iniciada)</span>
+                    </div>
                   ` : isActive ? `
                     <div style="margin-top: 1.2rem;">
                       <input type="number" step="0.01" id="bid-input-${auction.id}" min="${nextBidRequired}" placeholder="Ingresar monto" style="margin-bottom: 0.5rem;">
@@ -632,6 +651,7 @@ async function loadAuctions(isSilent = false) {
         }
     }
 }
+
 
 async function placeBid(auctionId) {
     const token = localStorage.getItem("token");
@@ -691,7 +711,7 @@ async function placeBid(auctionId) {
     }
 }
 
-function updateLocalTimers() {
+function updateLocalTimers() { 
     const now = new Date().getTime();
 
     auctionsCache.forEach(auction => {
@@ -701,6 +721,23 @@ function updateLocalTimers() {
         if (auction.status === "FINALIZADA") {
             timerElement.textContent = "Finalizada";
             timerElement.className = "auction-timer timer-gray";
+            return;
+        }
+
+        if (auction.status === "PROGRAMADA") {
+            const startTime = new Date(auction.startDate).getTime();
+            const distanceToStart = startTime - now;
+
+            if (distanceToStart <= 0) {
+                timerElement.textContent = "¡Iniciando ahora!";
+                timerElement.className = "auction-timer timer-green";
+                return;
+            }
+
+            const minutes = Math.floor(distanceToStart / (1000 * 60));
+            const seconds = Math.floor((distanceToStart % (1000 * 60)) / 1000);
+            timerElement.textContent = `Inicia en: ${minutes}m ${seconds < 10 ? '0' : ''}${seconds}s`;
+            timerElement.className = "auction-timer timer-yellow";
             return;
         }
 
