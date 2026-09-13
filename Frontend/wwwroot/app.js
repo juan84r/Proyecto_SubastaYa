@@ -551,8 +551,7 @@ async function loadWalletBalance() {
     }
 }
 
-
-async function loadAuctions(isSilent = false) {                  
+async function loadAuctions(isSilent = false) {
     const token = localStorage.getItem("token");
     const currentUserId = parseInt(localStorage.getItem("userId") || "0");
     const grid = document.getElementById("grid-auctions");
@@ -587,8 +586,6 @@ async function loadAuctions(isSilent = false) {
             auctionList = await response.json();
         }
 
-        auctionsCache = auctionList;
-
         const detailsList = await Promise.all(
             auctionList.map(auction =>
                 fetch(`${API_BASE}/Auctions/${auction.id}`, {
@@ -596,6 +593,7 @@ async function loadAuctions(isSilent = false) {
                 }).then(r => r.ok ? r.json() : null).catch(() => null)
             )
         );
+
         auctionsCache = auctionList.map((auc, idx) => ({
             ...auc,
             ...(detailsList[idx] || {})
@@ -603,8 +601,6 @@ async function loadAuctions(isSilent = false) {
 
         const existingCards = grid.querySelectorAll(".auction-card");
 
-        // Evaluamos si alguna subasta cambió de estado (ej: pasó de PROGRAMADA a ACTIVA o FINALIZADA)
-        // para romper el modo silencioso y forzar el redibujado completo de la tarjeta
         const hasStatusChanged = auctionsCache.some(auction => {
             const currentBadge = grid.querySelector(`.auction-card:has(#price-${auction.id}) .status-tag`);
             return currentBadge && currentBadge.textContent.trim() !== auction.status;
@@ -662,6 +658,10 @@ async function loadAuctions(isSilent = false) {
             const isActive = auction.status === "ACTIVA";
             const isScheduled = auction.status === "PROGRAMADA";
 
+            const rawDescription = details.description || auction.description || "";
+            const isLong = rawDescription.length > 65;
+            const shortDescription = isLong ? rawDescription.substring(0, 65) + "..." : rawDescription;
+
             const card = document.createElement("div");
             card.className = "card auction-card";
             card.style.padding = "0";
@@ -682,15 +682,23 @@ async function loadAuctions(isSilent = false) {
                     </div>
 
                     <h3 style="margin: 0.75rem 0 0.2rem;">${auction.title}</h3>
-                   
+
+                    <!-- Bloque de Detalle / Descripción -->
+                    <div style="margin-bottom: 0.6rem; font-size: 0.88rem; color: #4b5563; line-height: 1.35;">
+                        <span id="desc-text-${auction.id}">${shortDescription}</span>
+                        ${isLong ? `
+                            <button type="button" class="btn-toggle-desc" data-id="${auction.id}" data-full="${encodeURIComponent(rawDescription)}" data-short="${encodeURIComponent(shortDescription)}" style="background: none; border: none; padding: 0; color: #2563eb; font-weight: 600; cursor: pointer; font-size: 0.82rem; margin-left: 4px;">Ver más</button>
+                        ` : ''}
+                    </div>
+                    
                     <div>
                       <span id="timer-${auction.id}" class="auction-timer timer-green">Calculando...</span>
                     </div>
 
                     <hr style="margin: 0.5rem 0 0.8rem; border: none; border-top: 1px solid #f3f4f6;" />
-                   
+                    
                     <p><strong>Precio publicado:</strong> $${startingPrice.toFixed(2)}</p>
-                   
+                    
                     <p style="font-size: 1.05rem; margin: 0.2rem 0;">
                       <strong>Puja actual:</strong>
                       <span id="price-${auction.id}" style="color: #1d4ed8; font-weight: bold;">$${currentPrice.toFixed(2)}</span>
@@ -713,12 +721,12 @@ async function loadAuctions(isSilent = false) {
                         <button class="btn btn-block btn-edit-auction" data-id="${auction.id}" style="background-color: #eab308; color: #000; font-weight: 600; padding: 0.4rem; font-size: 0.85rem;">✏️ Modificar</button>
                         <button class="btn btn-block btn-delete-auction" data-id="${auction.id}" style="background-color: #c2410c; color: #fff; font-weight: 600; padding: 0.4rem; font-size: 0.85rem;">🗑️ Eliminar</button>
                     </div>
-                ` : `
+                  ` : `
                     <div style="display: flex; gap: 0.5rem;">
                         <button disabled style="background-color: #d1d5db; color: #6b7280; font-weight: 600; padding: 0.4rem; font-size: 0.85rem; border: none; border-radius: 4px; width: 100%; cursor: not-allowed;" title="No modificable mientras esté activa">✏️ Modificar</button>
                         <button disabled style="background-color: #d1d5db; color: #6b7280; font-weight: 600; padding: 0.4rem; font-size: 0.85rem; border: none; border-radius: 4px; width: 100%; cursor: not-allowed;" title="No eliminable mientras esté activa">🗑️ Eliminar</button>
                     </div>
-                 `}
+                  `}
                   </div>
                 </div>
 
@@ -735,6 +743,24 @@ async function loadAuctions(isSilent = false) {
                 </div>
             `;
             grid.appendChild(card);
+        });
+
+        grid.querySelectorAll(".btn-toggle-desc").forEach(btn => {
+            btn.onclick = () => {
+                const id = btn.dataset.id;
+                const textSpan = document.getElementById(`desc-text-${id}`);
+                const isExpanded = btn.dataset.expanded === "true";
+
+                if (isExpanded) {
+                    textSpan.textContent = decodeURIComponent(btn.dataset.short);
+                    btn.textContent = "Ver más";
+                    btn.dataset.expanded = "false";
+                } else {
+                    textSpan.textContent = decodeURIComponent(btn.dataset.full);
+                    btn.textContent = "Ver menos";
+                    btn.dataset.expanded = "true";
+                }
+            };
         });
 
         grid.querySelectorAll(".btn-bid").forEach(btn => {
