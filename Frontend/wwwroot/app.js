@@ -218,9 +218,11 @@ function initAuctionsPage() {
     document.getElementById("form-create-auction").onsubmit = async (e) => {
         e.preventDefault();
         const msg = document.getElementById("auction-msg");
-        msg.textContent = "Publicando...";
+        msg.textContent = "Guardando...";
         msg.className = "";
 
+        const editId = document.getElementById("auc-edit-id").value;
+        const isEditing = Boolean(editId);
         const categoryId = parseInt(document.getElementById("auc-category").value) || 1;
 
         const requestBody = {
@@ -234,9 +236,12 @@ function initAuctionsPage() {
             categoryId: categoryId
         };
 
+        const url = isEditing ? `${API_BASE}/Auctions/${editId}` : `${API_BASE}/Auctions`;
+        const method = isEditing ? "PUT" : "POST";
+
         try {
-            const response = await fetch(`${API_BASE}/Auctions`, {
-                method: "POST",
+            const response = await fetch(url, {
+                method: method,
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
@@ -245,13 +250,17 @@ function initAuctionsPage() {
             });
 
             const data = await response.json().catch(() => ({}));
-            if (!response.ok) throw new Error(data.message || "No se pudo crear la subasta");
+            if (!response.ok) throw new Error(data.message || "No se pudo guardar la subasta");
 
             msg.className = "success-msg";
-            msg.textContent = "¡Subasta creada!";
+            msg.textContent = isEditing ? "¡Subasta modificada!" : "¡Subasta creada!";
             document.getElementById("form-create-auction").reset();
+            document.getElementById("auc-edit-id").value = "";
 
-            openCategoryView(categoryId.toString());
+            const modalTitle = document.getElementById("auction-modal-title");
+            if (modalTitle) modalTitle.textContent = "Publicar Nueva Subasta";
+
+            loadAuctions(false);
             setTimeout(() => boxAuction.classList.add("hidden"), 1000);
         } catch (err) {
             msg.className = "error-msg";
@@ -461,6 +470,67 @@ function openCategoryView(categoryId, categoryName) {
     loadAuctions(false);
 }
 
+async function openEditAuction(id) {
+    const token = localStorage.getItem("token");
+    try {
+        const res = await fetch(`${API_BASE}/Auctions/${id}`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error("No se pudo cargar la subasta.");
+        const auc = await res.json();
+
+        document.getElementById("auc-edit-id").value = auc.id;
+        document.getElementById("auc-title").value = auc.title;
+        document.getElementById("auc-desc").value = auc.description;
+        document.getElementById("auc-image").value = auc.imageUrl || "";
+        document.getElementById("auc-price").value = auc.startingPrice;
+        document.getElementById("auc-increment").value = auc.minimumIncrement;
+        document.getElementById("auc-category").value = auc.categoryId;
+
+        const toLocalIso = d => {
+            const date = new Date(d);
+            const offset = date.getTimezoneOffset() * 60000;
+            return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+        };
+
+        document.getElementById("auc-start").value = toLocalIso(auc.startDate);
+        document.getElementById("auc-end").value = toLocalIso(auc.endDate);
+
+        const modalTitle = document.getElementById("auction-modal-title");
+        if (modalTitle) modalTitle.textContent = `Modificar Subasta #${auc.id}`;
+
+        const boxAuction = document.getElementById("box-auction");
+        boxAuction.classList.remove("hidden");
+        boxAuction.scrollIntoView({ behavior: "smooth" });
+    } catch (e) {
+        alert(e.message);
+    }
+}
+
+
+async function deleteAuction(id) {
+    if (!confirm(`¿Estás seguro de que querés eliminar la subasta #${id}?`)) return;
+
+    const token = localStorage.getItem("token");
+    try {
+        const res = await fetch(`${API_BASE}/Auctions/${id}`, {
+            method: "DELETE",
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            alert(data.message || data.detail || "Error al eliminar la subasta.");
+            return;
+        }
+
+        alert("Subasta eliminada exitosamente.");
+        loadAuctions(false);
+    } catch (err) {
+        alert("Error de conexión: " + err.message);
+    }
+}
+
 
 async function loadWalletBalance() {
     const token = localStorage.getItem("token");
@@ -526,9 +596,21 @@ async function loadAuctions(isSilent = false) {
                 }).then(r => r.ok ? r.json() : null).catch(() => null)
             )
         );
+        auctionsCache = auctionList.map((auc, idx) => ({
+            ...auc,
+            ...(detailsList[idx] || {})
+        }));
 
         const existingCards = grid.querySelectorAll(".auction-card");
-        if (isSilent && existingCards.length === auctionList.length && auctionList.length > 0) {
+
+        // Evaluamos si alguna subasta cambió de estado (ej: pasó de PROGRAMADA a ACTIVA o FINALIZADA)
+        // para romper el modo silencioso y forzar el redibujado completo de la tarjeta
+        const hasStatusChanged = auctionsCache.some(auction => {
+            const currentBadge = grid.querySelector(`.auction-card:has(#price-${auction.id}) .status-tag`);
+            return currentBadge && currentBadge.textContent.trim() !== auction.status;
+        });
+
+        if (!hasStatusChanged && isSilent && existingCards.length === auctionList.length && auctionList.length > 0) {
             auctionList.forEach((auction, index) => {
                 const details = detailsList[index];
                 if (!details) return;
@@ -621,9 +703,25 @@ async function loadAuctions(isSilent = false) {
                   </div>
 
                   ${isSeller ? `
-                    <div style="margin-top: 1.2rem; background: #eff6ff; padding: 0.6rem; border-radius: 6px; text-align: center; border: 1px solid #bfdbfe;">
-                      <span style="color: #1e40af; font-size: 0.85rem; font-weight: 600;">Esta es tu subasta (no podés ofertar)</span>
+                    <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                       <div style="background: #eff6ff; padding: 0.4rem; border-radius: 6px; text-align: center; border: 1px solid #bfdbfe;">
+                        <span style="color: #1e40af; font-size: 0.8rem; font-weight: 600;">Esta es tu publicación</span>
+                       </div>
+                    <div id="seller-actions-${auction.id}">
+                  ${isScheduled ? `
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn btn-block btn-edit-auction" data-id="${auction.id}" style="background-color: #eab308; color: #000; font-weight: 600; padding: 0.4rem; font-size: 0.85rem;">✏️ Modificar</button>
+                        <button class="btn btn-block btn-delete-auction" data-id="${auction.id}" style="background-color: #c2410c; color: #fff; font-weight: 600; padding: 0.4rem; font-size: 0.85rem;">🗑️ Eliminar</button>
                     </div>
+                ` : `
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button disabled style="background-color: #d1d5db; color: #6b7280; font-weight: 600; padding: 0.4rem; font-size: 0.85rem; border: none; border-radius: 4px; width: 100%; cursor: not-allowed;" title="No modificable mientras esté activa">✏️ Modificar</button>
+                        <button disabled style="background-color: #d1d5db; color: #6b7280; font-weight: 600; padding: 0.4rem; font-size: 0.85rem; border: none; border-radius: 4px; width: 100%; cursor: not-allowed;" title="No eliminable mientras esté activa">🗑️ Eliminar</button>
+                    </div>
+                 `}
+                  </div>
+                </div>
+
                   ` : isScheduled ? `
                     <div style="margin-top: 1.2rem; background: #fefce8; padding: 0.6rem; border-radius: 6px; text-align: center; border: 1px solid #fde047;">
                       <span style="color: #854d0e; font-size: 0.85rem; font-weight: 600;">⏳ Próximamente (Aún no iniciada)</span>
@@ -641,6 +739,14 @@ async function loadAuctions(isSilent = false) {
 
         grid.querySelectorAll(".btn-bid").forEach(btn => {
             btn.onclick = () => placeBid(parseInt(btn.dataset.id));
+        });
+
+        grid.querySelectorAll(".btn-edit-auction").forEach(btn => {
+            btn.onclick = () => openEditAuction(parseInt(btn.dataset.id));
+        });
+
+        grid.querySelectorAll(".btn-delete-auction").forEach(btn => {
+            btn.onclick = () => deleteAuction(parseInt(btn.dataset.id));
         });
 
         updateLocalTimers();
@@ -711,11 +817,12 @@ async function placeBid(auctionId) {
     }
 }
 
-function updateLocalTimers() { 
-    const now = new Date().getTime();
+function updateLocalTimers() {
+    const now = Date.now();
 
     auctionsCache.forEach(auction => {
         const timerElement = document.getElementById(`timer-${auction.id}`);
+        const actionsContainer = document.getElementById(`seller-actions-${auction.id}`);
         if (!timerElement) return;
 
         if (auction.status === "FINALIZADA") {
@@ -724,13 +831,36 @@ function updateLocalTimers() {
             return;
         }
 
+        const rawStart = auction.startDate || auction.StartDate;
+        const rawEnd = auction.endDate || auction.EndDate;
+
         if (auction.status === "PROGRAMADA") {
-            const startTime = new Date(auction.startDate).getTime();
+            if (!rawStart) {
+                timerElement.textContent = "Próximamente";
+                return;
+            }
+
+            const startTime = new Date(rawStart).getTime();
+            if (isNaN(startTime)) {
+                timerElement.textContent = "Próximamente";
+                return;
+            }
+
             const distanceToStart = startTime - now;
 
             if (distanceToStart <= 0) {
                 timerElement.textContent = "¡Iniciando ahora!";
                 timerElement.className = "auction-timer timer-green";
+
+                if (actionsContainer && !actionsContainer.dataset.locked) {
+                    actionsContainer.dataset.locked = "true";
+                    actionsContainer.innerHTML = `
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button disabled style="background-color: #d1d5db; color: #6b7280; font-weight: 600; padding: 0.4rem; font-size: 0.85rem; border: none; border-radius: 4px; width: 100%; cursor: not-allowed;" title="No modificable (subasta en curso)">✏️ Modificar</button>
+                            <button disabled style="background-color: #d1d5db; color: #6b7280; font-weight: 600; padding: 0.4rem; font-size: 0.85rem; border: none; border-radius: 4px; width: 100%; cursor: not-allowed;" title="No eliminable (subasta en curso)">🗑️ Eliminar</button>
+                        </div>
+                    `;
+                }
                 return;
             }
 
@@ -741,7 +871,17 @@ function updateLocalTimers() {
             return;
         }
 
-        const endTime = new Date(auction.endDate).getTime();
+        if (!rawEnd) {
+            timerElement.textContent = "En curso";
+            return;
+        }
+
+        const endTime = new Date(rawEnd).getTime();
+        if (isNaN(endTime)) {
+            timerElement.textContent = "En curso";
+            return;
+        }
+
         const distance = endTime - now;
 
         if (distance <= 0) {
@@ -756,14 +896,12 @@ function updateLocalTimers() {
 
         if (distance <= 60000) {
             timerElement.className = "auction-timer timer-orange";
-            timerElement.textContent = `⏳ ${formattedRemaining}`;
         } else if (distance <= 120000) {
             timerElement.className = "auction-timer timer-yellow";
-            timerElement.textContent = `⏳ ${formattedRemaining}`;
         } else {
             timerElement.className = "auction-timer timer-green";
-            timerElement.textContent = `⏳ ${formattedRemaining}`;
         }
+        timerElement.textContent = `⏳ ${formattedRemaining}`;
     });
 }
 
