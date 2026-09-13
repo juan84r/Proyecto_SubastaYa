@@ -221,6 +221,21 @@ function initAuctionsPage() {
         msg.textContent = "Guardando...";
         msg.className = "";
 
+        const startingPrice = parseFloat(document.getElementById("auc-price").value);
+        const minimumIncrement = parseFloat(document.getElementById("auc-increment").value);
+
+        if (isNaN(startingPrice) || startingPrice <= 0) {
+            msg.className = "error-msg";
+            msg.textContent = "El precio base no puede ser cero ni negativo.";
+            return;
+        }
+
+        if (isNaN(minimumIncrement) || minimumIncrement <= 0) {
+            msg.className = "error-msg";
+            msg.textContent = "El incremento mínimo no puede ser cero ni negativo.";
+            return;
+        }
+
         const editId = document.getElementById("auc-edit-id").value;
         const isEditing = Boolean(editId);
         const categoryId = parseInt(document.getElementById("auc-category").value) || 1;
@@ -229,8 +244,8 @@ function initAuctionsPage() {
             title: document.getElementById("auc-title").value.trim(),
             description: document.getElementById("auc-desc").value.trim(),
             imageUrl: document.getElementById("auc-image").value.trim(),
-            startingPrice: parseFloat(document.getElementById("auc-price").value),
-            minimumIncrement: parseFloat(document.getElementById("auc-increment").value),
+            startingPrice: startingPrice,
+            minimumIncrement: minimumIncrement,
             startDate: new Date(document.getElementById("auc-start").value).toISOString(),
             endDate: new Date(document.getElementById("auc-end").value).toISOString(),
             categoryId: categoryId
@@ -250,7 +265,17 @@ function initAuctionsPage() {
             });
 
             const data = await response.json().catch(() => ({}));
-            if (!response.ok) throw new Error(data.message || "No se pudo guardar la subasta");
+
+            if (!response.ok) {
+                let backendMsg = data.message || data.detail;
+
+                if (!backendMsg && data.errors) {
+                    const firstKey = Object.keys(data.errors)[0];
+                    backendMsg = data.errors[firstKey][0];
+                }
+
+                throw new Error(backendMsg || "El precio base no puede ser cero ni negativo.");
+            }
 
             msg.className = "success-msg";
             msg.textContent = isEditing ? "¡Subasta modificada!" : "¡Subasta creada!";
