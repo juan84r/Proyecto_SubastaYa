@@ -2,7 +2,7 @@
 Plataforma web de subastas en línea desarrollada con ASP.NET Core Web API en el backend y una interfaz de usuario 
 ligera construida con Vanilla JavaScript, HTML5 y CSS3 (sin frameworks pesados). El sistema cuenta con control de 
 saldos mediante billetera virtual integrada y garantiza la consistencia transaccional mediante Control de Concurrencia 
-Optimista (OCC).
+Optimista (OCC)
 
 Paquetes NuGet Requeridos
 Para la persistencia, migraciones y seguridad con tokens JWT, el proyecto requiere los siguientes paquetes en la 
