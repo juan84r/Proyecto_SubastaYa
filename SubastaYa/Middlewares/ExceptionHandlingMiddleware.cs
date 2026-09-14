@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Text.Json;
 
-namespace SubastaYaCopia.Middlewares
+namespace SubastaYa.Middlewares
 {
     public class ExceptionHandlingMiddleware
     {
