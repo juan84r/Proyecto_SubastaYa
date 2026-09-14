@@ -673,7 +673,9 @@ async function loadAuctions(isSilent = false) {
             const minimumIncrement = Number(details.minimumIncrement ?? 1);
             const hasBids = (auction.totalBids > 0);
 
-            const imageUrl = details.imageUrl || details.ImageUrl || auction.imageUrl || auction.ImageUrl || "";
+            const rawImg = details.imageUrl || details.ImageUrl || auction.imageUrl || auction.ImageUrl || "";
+            const hasValidImage = typeof rawImg === "string" && rawImg.trim() !== "" && rawImg.trim() !== "null" && rawImg.trim() !== "undefined";
+            const imageUrl = hasValidImage ? rawImg.trim() : "";
 
             const nextBidRequired = hasBids
                 ? (currentPrice + minimumIncrement).toFixed(2)
@@ -693,78 +695,85 @@ async function loadAuctions(isSilent = false) {
             card.style.overflow = "hidden";
 
             card.innerHTML = `
-                ${imageUrl ? `
-                  <div style="width: 100%; height: 180px; background-color: #e5e7eb; overflow: hidden; position: relative;">
-                    <img src="${imageUrl}" alt="${auction.title}" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.parentElement.style.display='none';">
+                <div style="width: 100%; height: 180px; background-color: #f3f4f6; overflow: hidden; position: relative; border-bottom: 1px solid #e5e7eb; flex-shrink: 0;">
+                  ${imageUrl ? `
+                    <img src="${imageUrl}" alt="${auction.title}" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                  ` : ''}
+                  <div style="display: ${imageUrl ? 'none' : 'flex'}; width: 100%; height: 100%; align-items: center; justify-content: center; flex-direction: column; gap: 0.35rem; color: #9ca3af; background-color: #f3f4f6;">
+                    <span style="font-size: 2rem; line-height: 1;">📷</span>
+                    <span style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280;">Sin Foto</span>
                   </div>
-                ` : ''}
+                </div>
 
-                <div style="padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1;">
+                <div style="padding: 1.25rem; display: flex; flex-direction: column; flex-grow: 1;">
+                  <!-- PARTE SUPERIOR: Textos variables -->
                   <div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                       <span class="status-tag status-${auction.status}">${auction.status}</span>
                       <span style="font-size: 0.8rem; color: #6b7280;">ID #${auction.id} • ${details.categoryName || auction.categoryName || "General"}</span>
                     </div>
 
-                    <h3 style="margin: 0.75rem 0 0.2rem;">${auction.title}</h3>
+                    <h3 style="margin: 0.75rem 0 0.25rem; font-size: 1.15rem; min-height: 1.4em;">${auction.title}</h3>
 
                     <!-- Bloque de Detalle / Descripción -->
-                    <div style="margin-bottom: 0.6rem; font-size: 0.88rem; color: #4b5563; line-height: 1.35;">
+                    <div style="margin-bottom: 0.8rem; font-size: 0.88rem; color: #4b5563; line-height: 1.35; min-height: 1.3em;">
                         <span id="desc-text-${auction.id}">${shortDescription}</span>
                         ${isLong ? `
                             <button type="button" class="btn-toggle-desc" data-id="${auction.id}" data-full="${encodeURIComponent(rawDescription)}" data-short="${encodeURIComponent(shortDescription)}" style="background: none; border: none; padding: 0; color: #2563eb; font-weight: 600; cursor: pointer; font-size: 0.82rem; margin-left: 4px;">Ver más</button>
                         ` : ''}
                     </div>
-                    
-                    <div>
+                  </div>
+
+                  <!-- PARTE INFERIOR: Reloj, Precios y Acciones (ANCLADOS ABAJO) -->
+                  <div style="margin-top: auto;">
+                    <div style="margin-bottom: 0.4rem;">
                       <span id="timer-${auction.id}" class="auction-timer timer-green">Calculando...</span>
                     </div>
 
                     <hr style="margin: 0.5rem 0 0.8rem; border: none; border-top: 1px solid #f3f4f6;" />
                     
-                    <p><strong>Precio publicado:</strong> $${startingPrice.toFixed(2)}</p>
+                    <p style="margin: 0.2rem 0; font-size: 0.9rem;"><strong>Precio publicado:</strong> $${startingPrice.toFixed(2)}</p>
                     
                     <p style="font-size: 1.05rem; margin: 0.2rem 0;">
                       <strong>Puja actual:</strong>
                       <span id="price-${auction.id}" style="color: #1d4ed8; font-weight: bold;">$${currentPrice.toFixed(2)}</span>
                     </p>
 
-                    <p style="margin-bottom: 0.2rem;">
+                    <p style="margin: 0.2rem 0 0.5rem;">
                       <strong>Mínimo de puja:</strong>
                       <span id="min-${auction.id}" style="color: #047857; font-weight: 600;">$${minimumIncrement.toFixed(2)}</span>
                     </p>
-                  </div>
 
-                  ${isSeller ? `
-                    <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
-                       <div style="background: #eff6ff; padding: 0.4rem; border-radius: 6px; text-align: center; border: 1px solid #bfdbfe;">
-                        <span style="color: #1e40af; font-size: 0.8rem; font-weight: 600;">Esta es tu publicación</span>
-                       </div>
-                    <div id="seller-actions-${auction.id}">
-                  ${isScheduled ? `
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn btn-block btn-edit-auction" data-id="${auction.id}" style="background-color: #eab308; color: #000; font-weight: 600; padding: 0.4rem; font-size: 0.85rem;">✏️ Modificar</button>
-                        <button class="btn btn-block btn-delete-auction" data-id="${auction.id}" style="background-color: #c2410c; color: #fff; font-weight: 600; padding: 0.4rem; font-size: 0.85rem;">🗑️ Eliminar</button>
+                    ${isSeller ? `
+                      <div style="margin-top: 0.8rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                         <div style="background: #eff6ff; padding: 0.4rem; border-radius: 6px; text-align: center; border: 1px solid #bfdbfe;">
+                          <span style="color: #1e40af; font-size: 0.8rem; font-weight: 600;">Esta es tu publicación</span>
+                         </div>
+                      <div id="seller-actions-${auction.id}">
+                      ${isScheduled ? `
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-block btn-edit-auction" data-id="${auction.id}" style="background-color: #eab308; color: #000; font-weight: 600; padding: 0.4rem; font-size: 0.85rem;">✏️ Modificar</button>
+                            <button class="btn btn-block btn-delete-auction" data-id="${auction.id}" style="background-color: #c2410c; color: #fff; font-weight: 600; padding: 0.4rem; font-size: 0.85rem;">🗑️ Eliminar</button>
+                        </div>
+                      ` : `
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button disabled style="background-color: #d1d5db; color: #6b7280; font-weight: 600; padding: 0.4rem; font-size: 0.85rem; border: none; border-radius: 4px; width: 100%; cursor: not-allowed;" title="No modificable mientras esté activa">✏️ Modificar</button>
+                            <button disabled style="background-color: #d1d5db; color: #6b7280; font-weight: 600; padding: 0.4rem; font-size: 0.85rem; border: none; border-radius: 4px; width: 100%; cursor: not-allowed;" title="No eliminable mientras esté activa">🗑️ Eliminar</button>
+                        </div>
+                      `}
+                      </div>
                     </div>
-                  ` : `
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button disabled style="background-color: #d1d5db; color: #6b7280; font-weight: 600; padding: 0.4rem; font-size: 0.85rem; border: none; border-radius: 4px; width: 100%; cursor: not-allowed;" title="No modificable mientras esté activa">✏️ Modificar</button>
-                        <button disabled style="background-color: #d1d5db; color: #6b7280; font-weight: 600; padding: 0.4rem; font-size: 0.85rem; border: none; border-radius: 4px; width: 100%; cursor: not-allowed;" title="No eliminable mientras esté activa">🗑️ Eliminar</button>
-                    </div>
-                  `}
+                    ` : isScheduled ? `
+                      <div style="margin-top: 0.8rem; background: #fefce8; padding: 0.6rem; border-radius: 6px; text-align: center; border: 1px solid #fde047;">
+                        <span style="color: #854d0e; font-size: 0.85rem; font-weight: 600;">⏳ Próximamente (Aún no iniciada)</span>
+                      </div>
+                    ` : isActive ? `
+                      <div style="margin-top: 0.8rem;">
+                        <input type="number" step="0.01" id="bid-input-${auction.id}" min="${nextBidRequired}" placeholder="Ingresar monto" style="margin-bottom: 0.5rem;">
+                        <button class="btn btn-primary btn-block btn-bid" data-id="${auction.id}">Pujar</button>
+                      </div>
+                    ` : '<p style="color: #9ca3af; margin-top: 0.8rem; font-size: 0.9rem;">Subasta cerrada para ofertas.</p>'}
                   </div>
-                </div>
-
-                  ` : isScheduled ? `
-                    <div style="margin-top: 1.2rem; background: #fefce8; padding: 0.6rem; border-radius: 6px; text-align: center; border: 1px solid #fde047;">
-                      <span style="color: #854d0e; font-size: 0.85rem; font-weight: 600;">⏳ Próximamente (Aún no iniciada)</span>
-                    </div>
-                  ` : isActive ? `
-                    <div style="margin-top: 1.2rem;">
-                      <input type="number" step="0.01" id="bid-input-${auction.id}" min="${nextBidRequired}" placeholder="Ingresar monto" style="margin-bottom: 0.5rem;">
-                      <button class="btn btn-primary btn-block btn-bid" data-id="${auction.id}">Pujar</button>
-                    </div>
-                  ` : '<p style="color: #9ca3af; margin-top: 1.2rem; font-size: 0.9rem;">Subasta cerrada para ofertas.</p>'}
                 </div>
             `;
             grid.appendChild(card);

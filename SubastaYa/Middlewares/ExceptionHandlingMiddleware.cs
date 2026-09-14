@@ -10,9 +10,9 @@ namespace SubastaYaCopia.Middlewares
         private readonly RequestDelegate _next;
         private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
-        public ExceptionHandlingMiddleware(RequestDelegate _next, ILogger<ExceptionHandlingMiddleware> logger)
+        public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
         {
-            this._next = _next;
+            _next = next;
             _logger = logger;
         }
 
@@ -24,7 +24,7 @@ namespace SubastaYaCopia.Middlewares
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Ocurrió una excepción no controlada: {Message}", ex.Message);
+                _logger.LogError(ex, "Ocurrió una excepción controlada/no controlada: {Message}", ex.Message);
                 await HandleExceptionAsync(context, ex);
             }
         }
@@ -35,21 +35,24 @@ namespace SubastaYaCopia.Middlewares
 
             var statusCode = exception switch
             {
-                KeyNotFoundException => HttpStatusCode.NotFound,            
-                ArgumentException => HttpStatusCode.BadRequest,             
+                KeyNotFoundException => HttpStatusCode.NotFound,
+                NotFoundException => HttpStatusCode.NotFound,
+
+                ArgumentException => HttpStatusCode.BadRequest,
+                InvalidAmountException => HttpStatusCode.BadRequest,
+                InvalidAuctionDateException => HttpStatusCode.BadRequest,
+
+                InvalidCredentialsException => HttpStatusCode.Unauthorized,
+                UnauthorizedAccessException => HttpStatusCode.Unauthorized,
+
                 InvalidOperationException => HttpStatusCode.Conflict,
                 UserAlreadyExistsException => HttpStatusCode.Conflict,
-                InvalidCredentialsException => HttpStatusCode.Unauthorized,
-                InvalidAmountException => HttpStatusCode.Unauthorized,
-                NotFoundException => HttpStatusCode.NotFound,
-                InvalidAuctionDateException => HttpStatusCode.Unauthorized,
-                UnauthorizedAccessException => HttpStatusCode.Unauthorized,
-                ConcurrencyConflictException => HttpStatusCode.Unauthorized,
+                ConcurrencyConflictException => HttpStatusCode.Conflict,
+                SelfBiddingException => HttpStatusCode.Conflict,
+                AuctionNotActiveException => HttpStatusCode.Conflict,
+                InsufficientFundsException => HttpStatusCode.Conflict,
 
-                AuctionNotActiveException => HttpStatusCode.Unauthorized,
-                InsufficientFundsException => HttpStatusCode.Unauthorized,
-                SelfBiddingException => HttpStatusCode.Unauthorized,
-                _ => HttpStatusCode.InternalServerError                     
+                _ => HttpStatusCode.InternalServerError
             };
 
             context.Response.StatusCode = (int)statusCode;
