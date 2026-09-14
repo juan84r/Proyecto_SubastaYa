@@ -576,6 +576,7 @@ async function loadWalletBalance() {
     }
 }
 
+
 async function loadAuctions(isSilent = false) {
     const token = localStorage.getItem("token");
     const currentUserId = parseInt(localStorage.getItem("userId") || "0");
@@ -646,10 +647,17 @@ async function loadAuctions(isSilent = false) {
 
                 const priceElement = document.getElementById(`price-${auction.id}`);
                 const minElement = document.getElementById(`min-${auction.id}`);
+                const leaderElement = document.getElementById(`leader-${auction.id}`);
                 const inputBid = document.getElementById(`bid-input-${auction.id}`);
 
                 if (priceElement) priceElement.textContent = `$${currentPrice.toFixed(2)}`;
                 if (minElement) minElement.textContent = `$${minimumIncrement.toFixed(2)}`;
+
+                if (leaderElement) {
+                    const leaderName = details.highestBidderName || details.HighestBidderName || auction.highestBidderName || auction.HighestBidderName;
+                    leaderElement.textContent = leaderName ? `(Lidera: ${leaderName})` : "(Sin ofertas aún)";
+                    leaderElement.style.color = leaderName ? "#2563eb" : "#9ca3af";
+                }
 
                 if (inputBid && document.activeElement !== inputBid) {
                     inputBid.placeholder = "Ingresar monto";
@@ -676,6 +684,8 @@ async function loadAuctions(isSilent = false) {
             const rawImg = details.imageUrl || details.ImageUrl || auction.imageUrl || auction.ImageUrl || "";
             const hasValidImage = typeof rawImg === "string" && rawImg.trim() !== "" && rawImg.trim() !== "null" && rawImg.trim() !== "undefined";
             const imageUrl = hasValidImage ? rawImg.trim() : "";
+
+            const leaderName = details.highestBidderName || details.HighestBidderName || auction.highestBidderName || auction.HighestBidderName || "";
 
             const nextBidRequired = hasBids
                 ? (currentPrice + minimumIncrement).toFixed(2)
@@ -734,9 +744,12 @@ async function loadAuctions(isSilent = false) {
                     
                     <p style="margin: 0.2rem 0; font-size: 0.9rem;"><strong>Precio publicado:</strong> $${startingPrice.toFixed(2)}</p>
                     
-                    <p style="font-size: 1.05rem; margin: 0.2rem 0;">
+                    <p style="font-size: 1.05rem; margin: 0.2rem 0; display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
                       <strong>Puja actual:</strong>
                       <span id="price-${auction.id}" style="color: #1d4ed8; font-weight: bold;">$${currentPrice.toFixed(2)}</span>
+                      <span id="leader-${auction.id}" style="font-size: 0.83rem; font-weight: 600; color: ${leaderName ? '#2563eb' : '#9ca3af'};">
+                        ${leaderName ? `(Lidera: ${leaderName})` : '(Sin ofertas aún)'}
+                      </span>
                     </p>
 
                     <p style="margin: 0.2rem 0 0.5rem;">
@@ -818,25 +831,22 @@ async function loadAuctions(isSilent = false) {
     }
 }
 
-
 async function placeBid(auctionId) {
     const token = localStorage.getItem("token");
     const input = document.getElementById(`bid-input-${auctionId}`);
-    const amount = parseFloat(input.value);
+    if (!token || !input) return;
 
-    if (!amount || isNaN(amount)) {
-        alert("Ingresá un monto válido.");
+    const amount = parseFloat(input.value);
+    if (isNaN(amount) || amount <= 0) {
+        alert("Por favor, ingresá un monto válido.");
         return;
     }
 
-    try {
-        const responseAuction = await fetch(`${API_BASE}/Auctions/${auctionId}`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
-        const currentAuction = await responseAuction.json();
-        const currentVersion = currentAuction.version ?? 0;
+    const currentAuction = auctionsCache.find(a => a.id === auctionId);
+    const expectedVersion = currentAuction ? currentAuction.version : 1;
 
-        const responseBid = await fetch(`${API_BASE}/Auctions/${auctionId}/bids`, {
+    try {
+        const response = await fetch(`${API_BASE}/Auctions/${auctionId}/bids`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -845,35 +855,20 @@ async function placeBid(auctionId) {
             body: JSON.stringify({
                 auctionId: auctionId,
                 amount: amount,
-                expectedVersion: currentVersion
+                expectedVersion: expectedVersion
             })
         });
 
-        if (!responseBid.ok) {
-            const errorRaw = await responseBid.text();
-            let errorMessage = "";
-
-            try {
-                const errorJson = JSON.parse(errorRaw);
-                errorMessage = errorJson.message
-                    || errorJson.detail
-                    || errorJson.title
-                    || (errorJson.errors ? Object.values(errorJson.errors).flat().join("\n") : "");
-            } catch {
-                errorMessage = errorRaw;
-            }
-
-            alert(errorMessage || "No se pudo realizar la puja.");
-            return;
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || errorData.title || "No se pudo registrar la oferta.");
         }
 
-        alert("¡Puja realizada con éxito!");
         input.value = "";
-        await loadWalletBalance();
         await loadAuctions(false);
 
     } catch (err) {
-        alert("Error al comunicarse con el servidor.");
+        alert(err.message);
     }
 }
 
