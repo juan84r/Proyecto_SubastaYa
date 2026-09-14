@@ -21,7 +21,10 @@ dotnet add package System.IdentityModel.Tokens.Jwt
 # Documentación interactiva de API
 dotnet add package Swashbuckle.AspNetCore
 
-Comandos para Migraciones de Base de Datos
+# Tareas y Servicios en Segundo Plano (BackgroundService / Hosting)
+dotnet add package Microsoft.Extensions.Hosting
+
+# Comandos para Migraciones de Base de Datos
 
 # Crear una nueva migración
 dotnet ef migrations add InitialCreate
@@ -29,7 +32,7 @@ dotnet ef migrations add InitialCreate
 # Aplicar los cambios a la base de datos
 dotnet ef database update
 
-Configuración del Sistema
+# Configuración del Sistema
 1. Variables de Entorno y appsettings.json
 Asegurarse de tener configurada la cadena de conexión y los parámetros del token JWT:
 
@@ -87,7 +90,7 @@ Abrir la aplicación en el navegador y presionar F12 -> pestaña Console.
 
 Si la consola muestra advertencias de pegado, tipear allow pasting y presionar Enter.
 
-Copiar y ejecutar el siguiente script:
+# Copiar y ejecutar el siguiente script:
 
     (async () => {
  
@@ -163,4 +166,4 @@ Cierre y Transacciones: Al expirar el tiempo de la subasta, el estado transicion
 la billetera acredita automáticamente los fondos al vendedor y descuenta la reserva del comprador.
 
 Refresco Reactivo Silencioso: El panel de usuario actualiza el saldo y estado de actividad cada 3 segundos comparando 
-cambios en el DOM, evitando parpadeos visuales en la interfaz.
+cambios en el DOM, evitando parpadeos visual
