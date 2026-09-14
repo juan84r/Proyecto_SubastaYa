@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs.Bids
 {
-    public class WalletResponseDto
+    public class BidResponseDto
     {
         public int Id { get; set; }
-        public int UserId { get; set; }
-        public decimal TotalBalance { get; set; }
-        public decimal LockedBalance { get; set; }
-        public decimal AvailableBalance { get; set; }
+        public int AuctionId { get; set; }
+        public int BuyerId { get; set; }
+        public string BuyerName { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
+        public DateTime BidDate { get; set; }
     }
 }
