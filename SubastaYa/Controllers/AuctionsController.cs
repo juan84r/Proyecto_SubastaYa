@@ -83,7 +83,80 @@ namespace SubastaYa.Controllers
 			return Ok(response);
 		}
 
-		private int GetCurrentUserId()
+        [HttpPut("{id:int}")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Update(int id, [FromBody] CreateAuctionRequestDto dto, [FromServices] Infrastructure.Persistence.AppDbContext context, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var auction = await context.Auctions.FindAsync(new object[] { id }, cancellationToken);
+
+                if (auction == null)
+                    return NotFound(new { message = "Subasta no encontrada." });
+
+                if (auction.SellerId != userId)
+                    return StatusCode(StatusCodes.Status403Forbidden, new { message = "No tenés permiso para modificar esta subasta." });
+
+                if (auction.Status != "PROGRAMADA")
+                    return BadRequest(new { message = "No podés modificar una subasta que ya inició o finalizó." });
+
+                auction.Title = dto.Title;
+                auction.Description = dto.Description;
+                auction.ImageUrl = dto.ImageUrl ?? string.Empty;
+                auction.StartingPrice = dto.StartingPrice;
+                auction.MinimumIncrement = dto.MinimumIncrement;
+                auction.StartDate = dto.StartDate;
+                auction.EndDate = dto.EndDate;
+                auction.CategoryId = dto.CategoryId;
+
+                await context.SaveChangesAsync(cancellationToken);
+                return Ok(new { message = "Subasta actualizada exitosamente." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.InnerException?.Message ?? ex.Message });
+            }
+        }
+
+        [HttpDelete("{id:int}")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Delete(int id, [FromServices] Infrastructure.Persistence.AppDbContext context, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var auction = await context.Auctions.FindAsync(new object[] { id }, cancellationToken);
+
+                if (auction == null)
+                    return NotFound(new { message = "Subasta no encontrada." });
+
+                if (auction.SellerId != userId)
+                    return StatusCode(StatusCodes.Status403Forbidden, new { message = "No tenés permiso para eliminar esta subasta." });
+
+                if (auction.Status != "PROGRAMADA")
+                    return BadRequest(new { message = "No podés eliminar una subasta que ya se encuentra activa o finalizada." });
+
+                context.Auctions.Remove(auction);
+                await context.SaveChangesAsync(cancellationToken);
+
+                return Ok(new { message = "Subasta eliminada exitosamente." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.InnerException?.Message ?? ex.Message });
+            }
+        }
+
+        private int GetCurrentUserId()
 		{
 			var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
 						?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value

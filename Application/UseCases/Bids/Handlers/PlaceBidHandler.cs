@@ -49,12 +49,22 @@ namespace Application.UseCases.Bids.Handlers
                 throw new InvalidOperationException("El vendedor no puede pujar en su propia subasta.");
             }
 
+            var highestBid = await _bidRepository.GetHighestBidAsync(dto.AuctionId, cancellationToken);
+
+            if (highestBid == null && auction.Bids != null && auction.Bids.Any())
+            {
+                highestBid = auction.Bids.OrderByDescending(b => b.Amount).FirstOrDefault();
+            }
+
+            if (highestBid != null && highestBid.BuyerId == command.BuyerId)
+            {
+                throw new InvalidOperationException("Ya sos el máximo postor en esta subasta.");
+            }
+
             if (auction.Version != dto.ExpectedVersion)
             {
                 throw new ConcurrencyConflictException("La subasta ha sido actualizada por otra oferta. Por favor, recargá la página.");
             }
-
-            var highestBid = await _bidRepository.GetHighestBidAsync(dto.AuctionId, cancellationToken);
 
             decimal minimumAllowedAmount;
             if (highestBid == null)
@@ -63,11 +73,6 @@ namespace Application.UseCases.Bids.Handlers
             }
             else
             {
-                if (highestBid.BuyerId == command.BuyerId)
-                {
-                    throw new InvalidOperationException("Ya sos el máximo postor en esta subasta.");
-                }
-
                 minimumAllowedAmount = highestBid.Amount + auction.MinimumIncrement;
             }
 

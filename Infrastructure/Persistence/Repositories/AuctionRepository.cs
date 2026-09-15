@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Infrastructure.Persistence.Repositories
@@ -32,6 +33,7 @@ namespace Infrastructure.Persistence.Repositories
                 .Include(a => a.Seller)
                 .Include(a => a.Category)
                 .Include(a => a.Bids.OrderByDescending(b => b.Amount))
+                    .ThenInclude(b => b.Buyer)
                 .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
         }
 
@@ -40,8 +42,9 @@ namespace Infrastructure.Persistence.Repositories
             return await _context.Auctions
                 .AsNoTracking()
                 .Include(a => a.Category)
-                .Where(a => a.Status == "ACTIVA")
-                .OrderByDescending(a => a.StartDate)
+                .Where(a => a.Status == "ACTIVA" || a.Status == "PROGRAMADA")
+                .OrderBy(a => a.Status == "ACTIVA" ? 0 : 1)
+                .ThenBy(a => a.EndDate)
                 .ToListAsync(cancellationToken);
         }
 

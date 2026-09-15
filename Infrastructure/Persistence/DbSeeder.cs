@@ -121,7 +121,7 @@ namespace Infrastructure.Persistence
             var upcomingAuction = new Auction
             {
                 SellerId = seller.Id,
-                CategoryId = 4,
+                CategoryId = 7,
                 Title = "Signed Lionel Messi Argentina Jersey",
                 Description = "Includes official Certificate of Authenticity (COA).",
                 ImageUrl = "https://images.unsplash.com/photo-1522778119026-d647f0596c20",
@@ -151,7 +151,7 @@ namespace Infrastructure.Persistence
             var expiredAuctionDeserted = new Auction
             {
                 SellerId = seller.Id,
-                CategoryId = 3,
+                CategoryId = 5,
                 Title = "Vintage Wooden Wall Clock",
                 Description = "Past end time without any bids.",
                 ImageUrl = "https://images.unsplash.com/photo-1563861826100-9cb868fdbe1c",
