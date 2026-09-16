@@ -91,7 +91,6 @@ function initAuthPage() {
     };
 }
 
-
 const CATEGORIES_CONFIG = [
     { id: "", name: "Todas", image: "https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&auto=format&fit=crop&q=60" },
     { id: 1, name: "Vehículos", image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&auto=format&fit=crop&q=60" },
@@ -134,6 +133,11 @@ function initAuctionsPage() {
     document.getElementById("btn-toggle-recharge").onclick = () => {
         boxAuction.classList.add("hidden");
         boxActivity.classList.add("hidden");
+        const msg = document.getElementById("recharge-msg");
+        if (msg) {
+            msg.textContent = "";
+            msg.className = "";
+        }
         boxRecharge.classList.toggle("hidden");
     };
     document.getElementById("btn-cancel-recharge").onclick = () => boxRecharge.classList.add("hidden");
@@ -141,6 +145,19 @@ function initAuctionsPage() {
     document.getElementById("btn-toggle-auction").onclick = () => {
         boxRecharge.classList.add("hidden");
         boxActivity.classList.add("hidden");
+
+        const msg = document.getElementById("auction-msg");
+        if (msg) {
+            msg.textContent = "";
+            msg.className = "";
+        }
+        const form = document.getElementById("form-create-auction");
+        if (form) form.reset();
+
+        document.getElementById("auc-edit-id").value = "";
+        const modalTitle = document.getElementById("auction-modal-title");
+        if (modalTitle) modalTitle.textContent = "Publicar Nueva Subasta";
+
         preloadDateInputs();
         boxAuction.classList.toggle("hidden");
     };
@@ -208,7 +225,10 @@ function initAuctionsPage() {
             document.getElementById("recharge-amount").value = "";
 
             loadWalletBalance();
-            setTimeout(() => boxRecharge.classList.add("hidden"), 1000);
+            setTimeout(() => {
+                boxRecharge.classList.add("hidden");
+                msg.textContent = "";
+            }, 1200);
         } catch (err) {
             msg.className = "error-msg";
             msg.textContent = err.message;
@@ -236,6 +256,17 @@ function initAuctionsPage() {
             return;
         }
 
+        const startVal = document.getElementById("auc-start").value;
+        const endVal = document.getElementById("auc-end").value;
+        const startDate = new Date(startVal);
+        const endDate = new Date(endVal);
+
+        if (endDate <= startDate) {
+            msg.className = "error-msg";
+            msg.textContent = "La fecha de fin debe ser posterior a la de inicio.";
+            return;
+        }
+
         const editId = document.getElementById("auc-edit-id").value;
         const isEditing = Boolean(editId);
         const categoryId = parseInt(document.getElementById("auc-category").value) || 1;
@@ -246,8 +277,8 @@ function initAuctionsPage() {
             imageUrl: document.getElementById("auc-image").value.trim(),
             startingPrice: startingPrice,
             minimumIncrement: minimumIncrement,
-            startDate: new Date(document.getElementById("auc-start").value).toISOString(),
-            endDate: new Date(document.getElementById("auc-end").value).toISOString(),
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString(),
             categoryId: categoryId
         };
 
@@ -274,7 +305,7 @@ function initAuctionsPage() {
                     backendMsg = data.errors[firstKey][0];
                 }
 
-                throw new Error(backendMsg || "El precio base no puede ser cero ni negativo.");
+                throw new Error(backendMsg || "Error al procesar la subasta.");
             }
 
             msg.className = "success-msg";
@@ -286,7 +317,11 @@ function initAuctionsPage() {
             if (modalTitle) modalTitle.textContent = "Publicar Nueva Subasta";
 
             loadAuctions(false);
-            setTimeout(() => boxAuction.classList.add("hidden"), 1000);
+            setTimeout(() => {
+                boxAuction.classList.add("hidden");
+                msg.textContent = "";
+                msg.className = "";
+            }, 1200);
         } catch (err) {
             msg.className = "error-msg";
             msg.textContent = err.message;
@@ -330,7 +365,6 @@ function initAuctionsPage() {
         }
     }, 3000);
 }
-
 
 async function loadMyActivity(isSilent = false) {
     const token = localStorage.getItem("token");
@@ -377,16 +411,16 @@ async function loadMyActivity(isSilent = false) {
                     const absoluteAmount = Math.abs(Number(transaction.amount)).toFixed(2);
 
                     return `
-                                <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.85rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; background: #fafafa;">
-                                    <div>
-                                        <strong>${transaction.auctionId ? `Subasta #${transaction.auctionId} - ` : ""}${transaction.auctionTitle || "Operación Contable"}</strong>
-                                        <div style="font-size: 0.85rem; color: #6b7280;">Fecha: ${formattedDate} | Movimiento: ${transaction.type}</div>
-                                    </div>
-                                    <div style="font-size: 1.05rem; font-weight: 700; color: ${amountColor} !important;">
-                                        ${amountSign}$${absoluteAmount}
-                                    </div>
-                                </div>
-                            `;
+                        <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.85rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; background: #fafafa;">
+                            <div>
+                                <strong>${transaction.auctionId ? `Subasta #${transaction.auctionId} - ` : ""}${transaction.auctionTitle || "Operación Contable"}</strong>
+                                <div style="font-size: 0.85rem; color: #6b7280;">Fecha: ${formattedDate} | Movimiento: ${transaction.type}</div>
+                            </div>
+                            <div style="font-size: 1.05rem; font-weight: 700; color: ${amountColor} !important;">
+                                ${amountSign}$${absoluteAmount}
+                            </div>
+                        </div>
+                    `;
                 }).join("")}
                     </div>
                 `;
@@ -427,16 +461,16 @@ async function loadMyActivity(isSilent = false) {
                 const isFinished = sale.status === "FINALIZADA" || new Date(sale.endDate).getTime() <= now;
 
                 return `
-                            <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.85rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; background: #fafafa;">
-                                <div>
-                                    <strong>#${sale.id} - ${sale.title}</strong>
-                                    <div style="font-size: 0.85rem; color: #6b7280;">Precio inicial: $${Number(sale.details.startingPrice ?? sale.currentPrice).toFixed(2)}</div>
-                                </div>
-                                <div style="font-size: 0.95rem; font-weight: 700; color: ${isFinished ? '#166534' : '#854d0e'};">
-                                    ${isFinished ? '🟢 ¡Finalizada!' : '🟡 En curso'}
-                                </div>
-                            </div>
-                        `;
+                    <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.85rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; background: #fafafa;">
+                        <div>
+                            <strong>#${sale.id} - ${sale.title}</strong>
+                            <div style="font-size: 0.85rem; color: #6b7280;">Precio inicial: $${Number(sale.details.startingPrice ?? sale.currentPrice).toFixed(2)}</div>
+                        </div>
+                        <div style="font-size: 0.95rem; font-weight: 700; color: ${isFinished ? '#166534' : '#854d0e'};">
+                            ${isFinished ? '🟢 ¡Finalizada!' : '🟡 En curso'}
+                        </div>
+                    </div>
+                `;
             }).join("")}
                 </div>
             `;
@@ -504,6 +538,12 @@ async function openEditAuction(id) {
         if (!res.ok) throw new Error("No se pudo cargar la subasta.");
         const auc = await res.json();
 
+        const msg = document.getElementById("auction-msg");
+        if (msg) {
+            msg.textContent = "";
+            msg.className = "";
+        }
+
         document.getElementById("auc-edit-id").value = auc.id;
         document.getElementById("auc-title").value = auc.title;
         document.getElementById("auc-desc").value = auc.description;
@@ -532,7 +572,6 @@ async function openEditAuction(id) {
     }
 }
 
-
 async function deleteAuction(id) {
     if (!confirm(`¿Estás seguro de que querés eliminar la subasta #${id}?`)) return;
 
@@ -556,7 +595,6 @@ async function deleteAuction(id) {
     }
 }
 
-
 async function loadWalletBalance() {
     const token = localStorage.getItem("token");
     const display = document.getElementById("wallet-display");
@@ -576,12 +614,37 @@ async function loadWalletBalance() {
     }
 }
 
+function renderAuctionSkeletons(container, count = 6) {
+    container.innerHTML = Array(count).fill(`
+        <div class="card auction-card" style="padding: 0; overflow: hidden; border: 1px solid #e5e7eb;">
+            <div class="skeleton" style="width: 100%; height: 180px; border-bottom: 1px solid #e5e7eb;"></div>
+            <div style="padding: 1.25rem; display: flex; flex-direction: column; gap: 0.8rem;">
+                <div style="display: flex; justify-content: space-between;">
+                    <div class="skeleton" style="width: 70px; height: 20px;"></div>
+                    <div class="skeleton" style="width: 90px; height: 16px;"></div>
+                </div>
+                <div class="skeleton" style="width: 80%; height: 22px; margin-top: 0.3rem;"></div>
+                <div class="skeleton" style="width: 100%; height: 14px;"></div>
+                <div class="skeleton" style="width: 60%; height: 14px;"></div>
+                <div style="margin-top: 1.2rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                    <div class="skeleton" style="width: 50%; height: 18px;"></div>
+                    <div class="skeleton" style="width: 70%; height: 20px;"></div>
+                    <div class="skeleton" style="width: 100%; height: 38px; border-radius: 6px; margin-top: 0.5rem;"></div>
+                </div>
+            </div>
+        </div>
+    `).join("");
+}
 
 async function loadAuctions(isSilent = false) {
     const token = localStorage.getItem("token");
     const currentUserId = parseInt(localStorage.getItem("userId") || "0");
     const grid = document.getElementById("grid-auctions");
     if (!grid || !token) return;
+
+    if (!isSilent && grid.querySelectorAll(".auction-card").length === 0) {
+        renderAuctionSkeletons(grid, 6);
+    }
 
     try {
         let auctionList = [];
@@ -741,9 +804,9 @@ async function loadAuctions(isSilent = false) {
                     </div>
 
                     <hr style="margin: 0.5rem 0 0.8rem; border: none; border-top: 1px solid #f3f4f6;" />
-                    
+                   
                     <p style="margin: 0.2rem 0; font-size: 0.9rem;"><strong>Precio publicado:</strong> $${startingPrice.toFixed(2)}</p>
-                    
+                   
                     <p style="font-size: 1.05rem; margin: 0.2rem 0; display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
                       <strong>Puja actual:</strong>
                       <span id="price-${auction.id}" style="color: #1d4ed8; font-weight: bold;">$${currentPrice.toFixed(2)}</span>
